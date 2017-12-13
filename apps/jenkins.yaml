@@ -1,0 +1,52 @@
+---
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: jenkins
+  labels:
+    name: jenkins
+spec:
+  replicas: 1
+  selector:
+    name: jenkins
+  template:
+    metadata:
+      labels:
+        name: jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:2.73.2
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8081
+          protocol: TCP
+        volumeMounts:
+          - name: jenkins
+            mountPath: /data/jenkins
+      volumes:
+      - name: jenkins
+        emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: jenkins-service
+  labels:
+    name: jenkins
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    nodePort: 32502
+    targetPort: 8080
+    port: 8080
+    name: web
+  - protocol: TCP
+    targetPort: 8081
+    port: 8081
+    name: service
+  selector:
+    name: jenkins
+        

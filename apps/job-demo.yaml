@@ -1,0 +1,17 @@
+# This is a one-time run job, pod normally starts 30 seconds after the job ends.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-busybox
+spec:
+  template:
+    metadata:
+      name: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command:
+          - sleep
+          - "30"
+      restartPolicy: Never

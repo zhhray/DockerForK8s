@@ -1,0 +1,37 @@
+---
+  apiVersion: "extensions/v1beta1"
+  kind: "Deployment"
+  metadata: 
+    labels:
+      app: "tomcat"
+    name: "tomcat"
+  spec:
+    template: 
+      spec: 
+        containers: 
+          - 
+            image: tomcat:8.0
+            name: "tomcat"
+            ports: 
+              - 
+                containerPort: 8080
+      metadata: 
+        labels: 
+          app: "tomcat"
+    strategy: 
+      type: "Recreate"
+
+---
+  apiVersion: "v1"
+  kind: "Service"
+  metadata: 
+    labels: 
+      app: "tomcat-service"
+    name: "tomcat-service"  
+  spec: 
+    type: "NodePort"
+    ports: 
+      - 
+        port: 8080
+    selector: 
+      app: "tomcat"
