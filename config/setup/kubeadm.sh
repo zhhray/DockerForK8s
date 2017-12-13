@@ -42,6 +42,7 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 
 # Kubernetes 1.8开始要求关闭系统的Swap，如果不关闭，默认配置下kubelet将无法启动。可以通过kubelet的启动参数–fail-swap-on=false更改这个限制。
 # 修改 /etc/fstab 文件，注释掉 SWAP 的自动挂载，使用free -m确认swap已经关闭。
+sed -i '/swap/s/^/#&/' /etc/fstab
 swapoff -a
 
 
@@ -268,7 +269,7 @@ echo '============================================================'
 #fi
 #wget -P $HOME/ https://raw.githubusercontent.com/coreos/flannel/${FLANNEL_VERSION}/Documentation/kube-flannel.yml
 #sed -i 's/quay.io\/coreos\/flannel/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel/g' $HOME/kube-flannel.yml
-kubectl --namespace kube-system apply -f ./kube-flannel.yml
+kubectl --namespace kube-system apply -f ../flannel/kube-flannel.yml
 echo "Flannel created!"
 
 fi
