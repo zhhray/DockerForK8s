@@ -6,7 +6,7 @@
 # Kubeadm 方式在Centos7系统安装K8s
 
 ### 步骤列表
-1. 一键安装脚本: config/setup/kubeadm.sh
+1. 一键安装脚本: config/setup/kubeadm.sh (执行前赋予执行权限：sudo chmod 755 kubeadm.sh)
 ```bash
   Master 节点：
   sh kubeadm.sh $(yourip) master  # $(yourip)地址为master的物理IP地址
