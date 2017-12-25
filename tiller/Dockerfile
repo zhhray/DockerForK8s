@@ -1,2 +1,2 @@
-FROM gcr.io/google_containers/tiller:v2.7.2
+FROM gcr.io/kubernetes-helm/tiller:v2.7.2
 MAINTAINER zhhray <zhhray@qq.cn>
