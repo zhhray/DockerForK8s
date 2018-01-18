@@ -1,0 +1,21 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: zookeeper-headless
+  labels:
+    app: zookeeper
+spec:
+  ports:
+  - name: server
+    protocol: TCP
+    port: 2888
+    targetPort: 2888
+  - name: leader-election
+    protocol: TCP
+    port: 3888
+    targetPort: 3888
+  selector:
+    app: zookeeper
+  clusterIP: None
+  type: ClusterIP

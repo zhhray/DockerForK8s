@@ -1,0 +1,107 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1beta2
+metadata:
+  name: hadoop-hdfs-journalnode
+  labels:
+    app: hadoop
+    component: hadoop-journalnode
+  annotations:
+    hadoop/version: 2.7.3
+    jdk/version: jdk1.8.0_161
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hadoop
+      component: hadoop-journalnode
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: hadoop-journalnode
+    spec:
+      volumes:
+      - name: hadoop-config
+        configMap:
+          name: hadoop-cm
+          defaultMode: 420
+      - name: dfs-journal-data
+        emptyDir: {}
+      - name: dfs-tmp
+        emptyDir: {}
+      containers:
+      - name: hadoop-journalnode
+        image: zhhray/hadoop:2.7.3
+        command:
+        - "/bin/bash"
+        - "/etc/hadoop-config/bootstrap.sh"
+        - "-d"
+        env:
+        - name: MY_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: hdfs-client
+          containerPort: 50010
+          protocol: TCP
+        - name: hdfs-ipc
+          containerPort: 50020
+          protocol: TCP
+        - name: web-http
+          containerPort: 50075
+          protocol: TCP 
+        - name: journal-rpc
+          containerPort: 8485
+          protocol: TCP   
+        - name: journal-http
+          containerPort: 8480
+          protocol: TCP  
+        - name: nm-ipc
+          containerPort: 8040
+          protocol: TCP   
+        - name: nm-address
+          containerPort: 8041
+          protocol: TCP    
+        - name: nm-webapp
+          containerPort: 8042
+          protocol: TCP   
+        resources:
+          limits:
+            cpu: '1'
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 256Mi
+        volumeMounts:
+        - name: hadoop-config
+          mountPath: "/tmp/hadoop"
+        - name: dfs-journal-data
+          mountPath: "/usr/local/hadoop/journaldata"
+        - name: dfs-tmp
+          mountPath: "/usr/local/hadoop/tmp"  
+        terminationMessagePath: "/dev/termination-log"
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      ### podAntiAffinity 描述pod被调度的策略
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 5
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: hadoop-journalnode
+              topologyKey: kubernetes.io/hostname           
+      schedulerName: default-scheduler
+  serviceName: hadoop-journalnode-headless
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: OnDelete
+  revisionHistoryLimit: 10

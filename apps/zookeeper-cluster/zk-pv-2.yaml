@@ -1,0 +1,16 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: pv-zk-2
+  annotations:
+    pv.kubernetes.io/provisioned-by: docker.io/hostpath
+spec:
+  capacity:
+    storage: 2Gi
+  hostPath:
+    path: "/root/zkdata/zk-data-2"
+    type: ''  
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete

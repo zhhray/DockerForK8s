@@ -1,0 +1,40 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hadoop-namenode-headless
+  labels:
+    app: hadoop
+    component: hadoop-namenode
+spec:
+  ports:
+  - name: dfs
+    protocol: TCP
+    port: 9000
+    targetPort: 9000
+  - name: web-http
+    protocol: TCP
+    port: 50070
+    targetPort: 50070  
+  - name: hdfs-client-rpc
+    protocol: TCP
+    port: 8020
+    targetPort: 8020
+  - name: hdfs-datanode
+    protocol: TCP
+    port: 9001
+    targetPort: 9001    
+  - name: second-nn
+    protocol: TCP
+    port: 50090
+    targetPort: 50090
+  - name: hdfs-zkfc
+    protocol: TCP
+    port: 8019
+    targetPort: 8019     
+  selector:
+    app: hadoop
+    component: hadoop-namenode
+  clusterIP: None
+  type: ClusterIP
+  sessionAffinity: None

@@ -1,0 +1,118 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1beta2
+metadata:
+  name: hadoop-hdfs-namenode
+  labels:
+    app: hadoop
+    component: hadoop-namenode
+  annotations:
+    hadoop/version: 2.7.3
+    jdk/version: jdk1.8.0_161
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hadoop
+      component: hadoop-namenode
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: hadoop-namenode
+    spec:
+      volumes:
+      - name: hadoop-config
+        configMap:
+          name: hadoop-cm
+          defaultMode: 420
+      - name: dfs-tmp
+        hostPath: 
+          path: /root/bigdata/data/namenode
+      containers:
+      - name: hadoop-namenode
+        image: zhhray/hadoop:2.7.3
+        command:
+        - "/bin/bash"
+        - "/etc/hadoop-config/bootstrap.sh"
+        - "-d"
+        env:
+        - name: MY_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: hdfs-default
+          containerPort: 9000
+          protocol: TCP
+        - name: hdfs-client-rpc
+          containerPort: 8020
+          protocol: TCP  
+        - name: hdfs-datanode
+          containerPort: 9001
+          protocol: TCP
+        - name: web-http
+          containerPort: 50070
+          protocol: TCP 
+        - name: second-nn
+          containerPort: 50090
+          protocol: TCP  
+        - name: hdfs-zkfc
+          containerPort: 8019
+          protocol: TCP   
+        resources:
+          limits:
+            cpu: '1'
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 256Mi
+        volumeMounts:
+        - name: hadoop-config
+          mountPath: "/tmp/hadoop"
+        - name: dfs-tmp
+          mountPath: "/usr/local/hadoop/tmp"
+        livenessProbe:
+          httpGet:
+            path: "/"
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: "/"
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        terminationMessagePath: "/dev/termination-log"
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      ### podAntiAffinity 描述pod被调度的策略
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 5
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: hadoop-namenode
+              topologyKey: kubernetes.io/hostname           
+      schedulerName: default-scheduler
+  serviceName: hadoop-namenode-headless
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: OnDelete
+  revisionHistoryLimit: 10
