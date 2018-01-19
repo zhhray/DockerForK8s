@@ -13,7 +13,7 @@ HADOOP_NAMENODE_WEBHDFS_PORT=${HADOOP_NAMENODE_WEBHDFS_PORT:-50070}
 HADOOP_JOURNALNODE_RPC_PORT=${HADOOP_JOURNALNODE_RPC_PORT:-8485}
 MY_NAMESPACE=${MY_NAMESPACE:-'default'}
 
-if [[ -f ! $CONFIG_FILE ]]; then
+if [ ! -f  $CONFIG_FILE ]; then
   echo "ERROR: Could not find $CONFIG_FILE"
   exit 1
 fi
@@ -51,7 +51,7 @@ sed -i 's/NAMENODE_STANDBY_HTTP_NAME/'$NAMENODE_STANDBY_HTTP_NAME'/' $HADOOP_PRE
 sed -i 's/NAMENODE_STANDBY_HTTP_PORT/'$HADOOP_NAMENODE_WEBHDFS_PORT'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/JOURNALNODE_HOST_0/'$JOURNALNODE_HOST_0'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/JOURNALNODE_HOST_1/'$JOURNALNODE_HOST_1'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
-sed -i 's/JOURNALNOD_HOSTE_2/'$JOURNALNODE_HOST_2'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
+sed -i 's/JOURNALNODE_HOST_2/'$JOURNALNODE_HOST_2'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/JOURNALNODE_PORT/'$HADOOP_JOURNALNODE_RPC_PORT'/g' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i "s:JOURNAL_DATA_DIR:${JOURNAL_DATA_DIR}:" $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml 
 
@@ -75,16 +75,17 @@ if [[ "${HOSTNAME}" =~ "${NAMENODE_MASTER_HOSTNAME}" ]]; then
     $HADOOP_PREFIX/bin/hdfs zkfc -formatZK -force -nonInteractive
   fi
     
-    $HADOOP_PREFIX/sbin/start-dfs.sh
+    #$HADOOP_PREFIX/sbin/start-dfs.sh
+	$HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+	$HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
 
   if [[ $1 == "-d" ]]; then
     until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
     tail -F ${HADOOP_PREFIX}/logs/* &
     while true; do sleep 1000; done
   fi
-fi
 
-if [[ "${HOSTNAME}" =~ "${NAMENODE_STANDBY_HOSTNAME}" ]]; then
+elif [[ "${HOSTNAME}" =~ "${NAMENODE_STANDBY_HOSTNAME}" ]]; then
   
   # slaves是指定子节点的位置，因为要在namenode上启动HDFS，slaves文件指定的是datanode的位置
   IFS="," 
@@ -97,18 +98,18 @@ if [[ "${HOSTNAME}" =~ "${NAMENODE_STANDBY_HOSTNAME}" ]]; then
   if [ "`ls -A $HADOOP_TMP_DIR`" = "" ]; then
     scp -r $NAMENODE_MASTER_HOST:$HADOOP_TMP_DIR $HADOOP_TMP_DIR/../
   fi
-  $HADOOP_PREFIX/sbin/start-dfs.sh
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
 
   if [[ $1 == "-d" ]]; then
     until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
     tail -F ${HADOOP_PREFIX}/logs/* &
     while true; do sleep 1000; done
   fi
-fi
 
-if [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME_0}" ]]; then
+elif [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME}" ]]; then
 
-  # slaves是指定子节点的位置，因为要在resourcemanager-0启动yarn，所以resourcemanager-0上的slaves文件指定的是nodemanager的位置
+  # slaves是指定子节点的位置，因为要在resourcemanager启动yarn，所以resourcemanager上的slaves文件指定的是nodemanager的位置
   IFS="," 
   nodemanagers=($NODEMANAGERS)
   for nodemanager in ${nodemanagers[@]}
@@ -116,7 +117,7 @@ if [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME_0}" ]]; then
     echo $nodemanager >> $HADOOP_PREFIX/etc/hadoop/slaves
   done
 
-  $HADOOP_PREFIX/sbin/start-yarn.sh
+  #$HADOOP_PREFIX/sbin/start-yarn.sh
   $HADOOP_PREFIX/sbin/yarn-daemon.sh start resourcemanager
   
   if [[ $1 == "-d" ]]; then
@@ -124,9 +125,9 @@ if [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME_0}" ]]; then
     tail -F ${HADOOP_PREFIX}/logs/* &
     while true; do sleep 1000; done
   fi
-fi
 
-if [[ "${HOSTNAME}" =~ "${JOURNALNODE_HOSTNAME}" ]]; then
+elif [[ "${HOSTNAME}" =~ "${JOURNALNODE_HOSTNAME}" ]]; then
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
   $HADOOP_PREFIX/sbin/hadoop-daemon.sh start journalnode
 
   if [[ $1 == "-d" ]]; then
@@ -134,6 +135,14 @@ if [[ "${HOSTNAME}" =~ "${JOURNALNODE_HOSTNAME}" ]]; then
     tail -F ${HADOOP_PREFIX}/logs/* &
     while true; do sleep 1000; done
   fi
+
+else
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
+  if [[ $1 == "-d" ]]; then
+    until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
+    tail -F ${HADOOP_PREFIX}/logs/* &
+    while true; do sleep 1000; done
+  fi  
 fi
 
 if [[ $1 == "-bash" ]]; then
