@@ -9,26 +9,26 @@
   <!-- Master下面有两个NameNode，分别是Master，Standby -->
   <property>
     <name>dfs.ha.namenodes.masters</name>
-    <value>NAMENODE_MASTER_HOST,NAMENODE_STANDBY_HOST</value>
+    <value>nn1,nn2</value>
   </property>
   <!-- Master的RPC通信地址 -->
   <property>
-    <name>NAMENODE_MASTER_RPC_NAME</name>
+    <name>dfs.namenode.rpc-address.masters.nn1</name>
     <value>NAMENODE_MASTER_HOST:NAMENODE_MASTER_RPC_PORT</value>
   </property>
   <!-- Master的http通信地址 -->
   <property>
-    <name>NAMENODE_MASTER_HTTP_NAME</name>
+    <name>dfs.namenode.http-address.masters.nn1</name>
     <value>NAMENODE_MASTER_HOST:NAMENODE_MASTER_HTTP_PORT</value>
   </property>
   <!-- Standby的RPC通信地址 -->
   <property>
-    <name>NAMENODE_STANDBY_RPC_NAME</name>
+    <name>dfs.namenode.rpc-address.masters.nn2</name>
     <value>NAMENODE_STANDBY_HOST:NAMENODE_STANDBY_RPC_PORT</value>
   </property>
   <!-- Standby的http通信地址 -->
   <property>
-    <name>NAMENODE_STANDBY_HTTP_NAME</name>
+    <name>dfs.namenode.http-address.masters.nn2</name>
     <value>NAMENODE_STANDBY_HOST:NAMENODE_STANDBY_HTTP_PORT</value>
   </property>
   <!-- 指定NameNode的元数据在JournalNode上的存放位置 -->

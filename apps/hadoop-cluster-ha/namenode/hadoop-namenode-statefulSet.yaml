@@ -112,7 +112,7 @@ spec:
               topologyKey: kubernetes.io/hostname           
       schedulerName: default-scheduler
   serviceName: hadoop-namenode-headless
-  podManagementPolicy: OrderedReady
+  podManagementPolicy: Parallel
   updateStrategy:
     type: OnDelete
   revisionHistoryLimit: 10

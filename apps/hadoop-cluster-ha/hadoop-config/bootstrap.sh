@@ -19,6 +19,7 @@ if [ ! -f  $CONFIG_FILE ]; then
 fi
 
 service ssh restart
+# Get config from external
 chmod 755 $CONFIG_FILE
 . $CONFIG_FILE
 chmod 755 $HADOOP_PREFIX/etc/hadoop/*.sh
@@ -40,14 +41,10 @@ sed -i "s:HADOOP_TMP_DIR:${HADOOP_TMP_DIR}:" $HADOOP_PREFIX/etc/hadoop/core-site
 sed -i 's/ZOOKEEPER_SERVERS/'$ZOOKEEPER_ADDRESSES'/' $HADOOP_PREFIX/etc/hadoop/core-site.xml
 
 sed -i 's/NAMENODE_MASTER_HOST/'$NAMENODE_MASTER_HOST'/g' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
-sed -i 's/NAMENODE_MASTER_RPC_NAME/'$NAMENODE_MASTER_RPC_NAME'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/NAMENODE_MASTER_RPC_PORT/'$HADOOP_NAMENODE_DFS_PORT'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
-sed -i 's/NAMENODE_MASTER_HTTP_NAME/'$NAMENODE_MASTER_HTTP_NAME'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/NAMENODE_MASTER_HTTP_PORT/'$HADOOP_NAMENODE_WEBHDFS_PORT'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/NAMENODE_STANDBY_HOST/'$NAMENODE_STANDBY_HOST'/g' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
-sed -i 's/NAMENODE_STANDBY_RPC_NAME/'$NAMENODE_STANDBY_RPC_NAME'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/NAMENODE_STANDBY_RPC_PORT/'$HADOOP_NAMENODE_DFS_PORT'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
-sed -i 's/NAMENODE_STANDBY_HTTP_NAME/'$NAMENODE_STANDBY_HTTP_NAME'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/NAMENODE_STANDBY_HTTP_PORT/'$HADOOP_NAMENODE_WEBHDFS_PORT'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/JOURNALNODE_HOST_0/'$JOURNALNODE_HOST_0'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 sed -i 's/JOURNALNODE_HOST_1/'$JOURNALNODE_HOST_1'/' $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
@@ -72,12 +69,14 @@ if [[ "${HOSTNAME}" =~ "${NAMENODE_MASTER_HOSTNAME}" ]]; then
   if [ "`ls -A $HADOOP_TMP_DIR`" = "" ]; then
     # $HADOOP_TMP_DIR is empty
     $HADOOP_PREFIX/bin/hdfs namenode -format -force -nonInteractive
+    scp -r $HADOOP_TMP_DIR $NAMENODE_STANDBY_HOST:$HADOOP_TMP_DIR/../
+	
     $HADOOP_PREFIX/bin/hdfs zkfc -formatZK -force -nonInteractive
   fi
-    
-    #$HADOOP_PREFIX/sbin/start-dfs.sh
-	$HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
-	$HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
+    # $HADOOP_PREFIX/sbin/start-dfs.sh
+
+    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
 
   if [[ $1 == "-d" ]]; then
     until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
@@ -95,16 +94,19 @@ elif [[ "${HOSTNAME}" =~ "${NAMENODE_STANDBY_HOSTNAME}" ]]; then
     echo $datanode >> $HADOOP_PREFIX/etc/hadoop/slaves
   done
 
-  if [ "`ls -A $HADOOP_TMP_DIR`" = "" ]; then
+  if [ "`ls -A $HADOOP_TMP_DIR`" != "" ]; then
+    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
+    if [[ $1 == "-d" ]]; then
+      until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
+      tail -F ${HADOOP_PREFIX}/logs/* &
+      while true; do sleep 1000; done
+    fi
+  else
     scp -r $NAMENODE_MASTER_HOST:$HADOOP_TMP_DIR $HADOOP_TMP_DIR/../
-  fi
-  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
-  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
-
-  if [[ $1 == "-d" ]]; then
-    until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
-    tail -F ${HADOOP_PREFIX}/logs/* &
-    while true; do sleep 1000; done
+    if [[ $1 == "-d" ]]; then
+      while true; do sleep 1000; done
+    fi
   fi
 
 elif [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME}" ]]; then
@@ -117,7 +119,7 @@ elif [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME}" ]]; then
     echo $nodemanager >> $HADOOP_PREFIX/etc/hadoop/slaves
   done
 
-  #$HADOOP_PREFIX/sbin/start-yarn.sh
+  # $HADOOP_PREFIX/sbin/start-yarn.sh
   $HADOOP_PREFIX/sbin/yarn-daemon.sh start resourcemanager
   
   if [[ $1 == "-d" ]]; then
@@ -127,7 +129,6 @@ elif [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME}" ]]; then
   fi
 
 elif [[ "${HOSTNAME}" =~ "${JOURNALNODE_HOSTNAME}" ]]; then
-  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
   $HADOOP_PREFIX/sbin/hadoop-daemon.sh start journalnode
 
   if [[ $1 == "-d" ]]; then
@@ -137,7 +138,10 @@ elif [[ "${HOSTNAME}" =~ "${JOURNALNODE_HOSTNAME}" ]]; then
   fi
 
 else
+  # Datanode
   $HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
+  $HADOOP_PREFIX/sbin/yarn-daemon.sh start nodemanager
+  
   if [[ $1 == "-d" ]]; then
     until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
     tail -F ${HADOOP_PREFIX}/logs/* &

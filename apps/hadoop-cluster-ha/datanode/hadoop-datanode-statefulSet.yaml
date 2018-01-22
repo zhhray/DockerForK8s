@@ -2,24 +2,24 @@
 kind: StatefulSet
 apiVersion: apps/v1beta2
 metadata:
-  name: hadoop-hdfs-resourcemanager
+  name: hadoop-hdfs-datanode
   labels:
     app: hadoop
-    component: hadoop-resourcemanager
+    component: hadoop-datanode
   annotations:
     hadoop/version: 2.7.3
     jdk/version: jdk1.8.0_161
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: hadoop
-      component: hadoop-resourcemanager
+      component: hadoop-datanode
   template:
     metadata:
       labels:
         app: hadoop
-        component: hadoop-resourcemanager
+        component: hadoop-datanode
     spec:
       volumes:
       - name: hadoop-config
@@ -29,7 +29,7 @@ spec:
       - name: dfs-tmp
         emptyDir: {}
       containers:
-      - name: hadoop-resourcemanager
+      - name: hadoop-datanode
         image: zhhray/hadoop:2.7.3
         command:
         - "/bin/bash"
@@ -41,21 +41,24 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         ports:
-        - name: manager
-          containerPort: 8032
+        - name: hdfs-client
+          containerPort: 50010
           protocol: TCP
-        - name: scheduler
-          containerPort: 8030
+        - name: hdfs-ipc
+          containerPort: 50020
           protocol: TCP
-        - name: tracker
-          containerPort: 8031
-          protocol: TCP 
-        - name: admin
-          containerPort: 8033
+        - name: web-http
+          containerPort: 50075
+          protocol: TCP  
+        - name: nm-ipc
+          containerPort: 8040
           protocol: TCP   
-        - name: http
-          containerPort: 8088
-          protocol: TCP       
+        - name: nm-address
+          containerPort: 8041
+          protocol: TCP    
+        - name: nm-webapp
+          containerPort: 8042
+          protocol: TCP   
         resources:
           limits:
             cpu: '1'
@@ -67,7 +70,7 @@ spec:
         - name: hadoop-config
           mountPath: "/tmp/hadoop"
         - name: dfs-tmp
-          mountPath: "/usr/local/hadoop/tmp"
+          mountPath: "/usr/local/hadoop/tmp"  
         terminationMessagePath: "/dev/termination-log"
         terminationMessagePolicy: File
         imagePullPolicy: IfNotPresent
@@ -84,10 +87,10 @@ spec:
               labelSelector:
                 matchLabels:
                   app: hadoop
-                  component: hadoop-resourcemanager
+                  component: hadoop-datanode
               topologyKey: kubernetes.io/hostname           
       schedulerName: default-scheduler
-  serviceName: hadoop-resourcemanager-headless
+  serviceName: hadoop-datanode-headless
   podManagementPolicy: Parallel
   updateStrategy:
     type: OnDelete

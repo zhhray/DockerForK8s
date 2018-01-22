@@ -1,0 +1,19 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hadoop-resourcemanager-service
+  labels:
+    app: hadoop
+    component: hadoop-resourcemanager
+spec:
+  ports:
+  - name: web
+    protocol: TCP
+    port: 8088
+    targetPort: 8088
+  selector:
+    app: hadoop
+    component: hadoop-resourcemanager
+  type: NodePort
+  sessionAffinity: None

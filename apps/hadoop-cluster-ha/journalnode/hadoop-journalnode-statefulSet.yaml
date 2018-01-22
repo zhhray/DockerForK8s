@@ -28,8 +28,6 @@ spec:
           defaultMode: 420
       - name: dfs-journal-data
         emptyDir: {}
-      - name: dfs-tmp
-        emptyDir: {}
       containers:
       - name: hadoop-journalnode
         image: zhhray/hadoop:2.7.3
@@ -43,30 +41,12 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         ports:
-        - name: hdfs-client
-          containerPort: 50010
-          protocol: TCP
-        - name: hdfs-ipc
-          containerPort: 50020
-          protocol: TCP
-        - name: web-http
-          containerPort: 50075
-          protocol: TCP 
         - name: journal-rpc
           containerPort: 8485
           protocol: TCP   
         - name: journal-http
           containerPort: 8480
           protocol: TCP  
-        - name: nm-ipc
-          containerPort: 8040
-          protocol: TCP   
-        - name: nm-address
-          containerPort: 8041
-          protocol: TCP    
-        - name: nm-webapp
-          containerPort: 8042
-          protocol: TCP   
         resources:
           limits:
             cpu: '1'
@@ -78,9 +58,7 @@ spec:
         - name: hadoop-config
           mountPath: "/tmp/hadoop"
         - name: dfs-journal-data
-          mountPath: "/usr/local/hadoop/journaldata"
-        - name: dfs-tmp
-          mountPath: "/usr/local/hadoop/tmp"  
+          mountPath: "/usr/local/hadoop/journaldata" 
         terminationMessagePath: "/dev/termination-log"
         terminationMessagePolicy: File
         imagePullPolicy: IfNotPresent
@@ -101,7 +79,7 @@ spec:
               topologyKey: kubernetes.io/hostname           
       schedulerName: default-scheduler
   serviceName: hadoop-journalnode-headless
-  podManagementPolicy: OrderedReady
+  podManagementPolicy: Parallel
   updateStrategy:
     type: OnDelete
   revisionHistoryLimit: 10
