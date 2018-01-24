@@ -10,7 +10,7 @@ metadata:
     hadoop/version: 2.7.3
     jdk/version: jdk1.8.0_161
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
       app: hadoop
@@ -26,8 +26,6 @@ spec:
         configMap:
           name: hadoop-cm
           defaultMode: 420
-      - name: dfs-tmp
-        emptyDir: {}
       containers:
       - name: hadoop-datanode
         image: zhhray/hadoop:2.7.3
@@ -69,15 +67,12 @@ spec:
         volumeMounts:
         - name: hadoop-config
           mountPath: "/tmp/hadoop"
-        - name: dfs-tmp
-          mountPath: "/usr/local/hadoop/tmp"  
+        - name: datadir
+          mountPath: "/usr/local/hadoop/tmp" 
         terminationMessagePath: "/dev/termination-log"
         terminationMessagePolicy: File
         imagePullPolicy: IfNotPresent
       restartPolicy: Always
-      terminationGracePeriodSeconds: 0
-      dnsPolicy: ClusterFirst
-      securityContext: {}
       ### podAntiAffinity 描述pod被调度的策略
       affinity:
         podAntiAffinity:
@@ -90,8 +85,14 @@ spec:
                   component: hadoop-datanode
               topologyKey: kubernetes.io/hostname           
       schedulerName: default-scheduler
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi      
   serviceName: hadoop-datanode-headless
   podManagementPolicy: Parallel
-  updateStrategy:
-    type: OnDelete
-  revisionHistoryLimit: 10

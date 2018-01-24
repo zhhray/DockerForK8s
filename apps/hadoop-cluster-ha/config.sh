@@ -7,11 +7,11 @@ JOURNAL_DATA_DIR=/usr/local/hadoop/journaldata
 # Zookeeper cluster address
 ZOOKEEPER_ADDRESSES=$ZOOKEEPER_SERVER_SERVICE_HOST:$ZOOKEEPER_PORT
 # Namenode master hostname
-NAMENODE_MASTER_HOSTNAME=hadoop-hdfs-namenode-1
+NAMENODE_MASTER_HOSTNAME=hadoop-hdfs-namenode-0
 # Namenode master hostname can be accessed from other pods
 NAMENODE_MASTER_HOST=$NAMENODE_MASTER_HOSTNAME.hadoop-namenode-headless.$MY_NAMESPACE.svc.cluster.local
 # Namenode standby hostname
-NAMENODE_STANDBY_HOSTNAME=hadoop-hdfs-namenode-0
+NAMENODE_STANDBY_HOSTNAME=hadoop-hdfs-namenode-1
 # Namenode standby hostname can be accessed from other pods
 NAMENODE_STANDBY_HOST=$NAMENODE_STANDBY_HOSTNAME.hadoop-namenode-headless.$MY_NAMESPACE.svc.cluster.local
 # Journalnode hostname
@@ -25,7 +25,5 @@ RESOURCE_MANAGER_HOSTNAME=hadoop-hdfs-resourcemanager
 # Resourcemanagers hostname can be accessed from other pods
 RESOURCE_MANAGER_HOST_0=hadoop-hdfs-resourcemanager-0.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
 RESOURCE_MANAGER_HOST_1=hadoop-hdfs-resourcemanager-1.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
-# Tell the namenode what the datanode is
-DATANODES="hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local"
-# Tell the resourcemanager what the nodemanager is
-NODEMANAGERS="hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local"
+# Tell namenode and resourcemanager what the datanodes are
+DATANODES="hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-3.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-4.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local"

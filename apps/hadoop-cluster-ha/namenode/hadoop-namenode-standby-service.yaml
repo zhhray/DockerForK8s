@@ -2,7 +2,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: hadoop-namenode-service
+  name: hadoop-namenode-standby-service
   labels:
     app: hadoop
     component: hadoop-namenode
@@ -15,5 +15,6 @@ spec:
   selector:
     app: hadoop
     component: hadoop-namenode
+    set-hostname: hadoop-hdfs-namenode-1
   type: NodePort
   sessionAffinity: None

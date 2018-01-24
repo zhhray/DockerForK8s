@@ -1,0 +1,20 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hadoop-namenode-master-service
+  labels:
+    app: hadoop
+    component: hadoop-namenode
+spec:
+  ports:
+  - name: webhdfs
+    protocol: TCP
+    port: 50070
+    targetPort: 50070
+  selector:
+    app: hadoop
+    component: hadoop-namenode
+    set-hostname: hadoop-hdfs-namenode-0
+  type: NodePort
+  sessionAffinity: None

@@ -2,7 +2,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: hadoop-resourcemanager-service
+  name: hadoop-resourcemanager-standby-service
   labels:
     app: hadoop
     component: hadoop-resourcemanager
@@ -15,5 +15,6 @@ spec:
   selector:
     app: hadoop
     component: hadoop-resourcemanager
+    set-hostname: hadoop-hdfs-resourcemanager-1
   type: NodePort
   sessionAffinity: None

@@ -26,9 +26,13 @@ spec:
         configMap:
           name: hadoop-cm
           defaultMode: 420
-      - name: dfs-tmp
-        hostPath: 
-          path: /root/bigdata/data/namenode
+      initContainers:
+      - name: init-set-label
+        command: 
+          - "sh"
+          - "-c"
+          - "/usr/local/bin/kubectl label pod ${HOSTNAME} set-hostname=${HOSTNAME}"
+        image: lachlanevenson/k8s-kubectl:v1.8.4
       containers:
       - name: hadoop-namenode
         image: zhhray/hadoop:2.7.3
@@ -70,7 +74,7 @@ spec:
         volumeMounts:
         - name: hadoop-config
           mountPath: "/tmp/hadoop"
-        - name: dfs-tmp
+        - name: datadir
           mountPath: "/usr/local/hadoop/tmp"
         livenessProbe:
           httpGet:
@@ -96,9 +100,6 @@ spec:
         terminationMessagePolicy: File
         imagePullPolicy: IfNotPresent
       restartPolicy: Always
-      terminationGracePeriodSeconds: 0
-      dnsPolicy: ClusterFirst
-      securityContext: {}
       ### podAntiAffinity 描述pod被调度的策略
       affinity:
         podAntiAffinity:
@@ -111,8 +112,14 @@ spec:
                   component: hadoop-namenode
               topologyKey: kubernetes.io/hostname           
       schedulerName: default-scheduler
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi    
   serviceName: hadoop-namenode-headless
-  podManagementPolicy: Parallel
-  updateStrategy:
-    type: OnDelete
-  revisionHistoryLimit: 10
+  podManagementPolicy: OrderedReady

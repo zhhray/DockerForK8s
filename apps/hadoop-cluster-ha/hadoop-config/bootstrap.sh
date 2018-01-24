@@ -69,14 +69,12 @@ if [[ "${HOSTNAME}" =~ "${NAMENODE_MASTER_HOSTNAME}" ]]; then
   if [ "`ls -A $HADOOP_TMP_DIR`" = "" ]; then
     # $HADOOP_TMP_DIR is empty
     $HADOOP_PREFIX/bin/hdfs namenode -format -force -nonInteractive
-    scp -r $HADOOP_TMP_DIR $NAMENODE_STANDBY_HOST:$HADOOP_TMP_DIR/../
-	
     $HADOOP_PREFIX/bin/hdfs zkfc -formatZK -force -nonInteractive
-  fi
-    # $HADOOP_PREFIX/sbin/start-dfs.sh
-
+    $HADOOP_PREFIX/sbin/start-dfs.sh
+  else
     $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
     $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
+  fi	
 
   if [[ $1 == "-d" ]]; then
     until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
@@ -94,29 +92,26 @@ elif [[ "${HOSTNAME}" =~ "${NAMENODE_STANDBY_HOSTNAME}" ]]; then
     echo $datanode >> $HADOOP_PREFIX/etc/hadoop/slaves
   done
 
-  if [ "`ls -A $HADOOP_TMP_DIR`" != "" ]; then
-    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
-    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
-    if [[ $1 == "-d" ]]; then
-      until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
-      tail -F ${HADOOP_PREFIX}/logs/* &
-      while true; do sleep 1000; done
-    fi
-  else
+  if [ "`ls -A $HADOOP_TMP_DIR`" = "" ]; then
     scp -r $NAMENODE_MASTER_HOST:$HADOOP_TMP_DIR $HADOOP_TMP_DIR/../
-    if [[ $1 == "-d" ]]; then
-      while true; do sleep 1000; done
-    fi
+  fi
+
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+  $HADOOP_PREFIX/sbin/hadoop-daemon.sh start zkfc
+  if [[ $1 == "-d" ]]; then
+    until find ${HADOOP_PREFIX}/logs -mmin -1 | egrep -q '.*'; echo "`date`: Waiting for logs..." ; do sleep 2 ; done
+    tail -F ${HADOOP_PREFIX}/logs/* &
+    while true; do sleep 1000; done
   fi
 
 elif [[ "${HOSTNAME}" =~ "${RESOURCE_MANAGER_HOSTNAME}" ]]; then
 
   # slaves是指定子节点的位置，因为要在resourcemanager启动yarn，所以resourcemanager上的slaves文件指定的是nodemanager的位置
   IFS="," 
-  nodemanagers=($NODEMANAGERS)
-  for nodemanager in ${nodemanagers[@]}
+  datanodes=($DATANODES)
+  for datanode in ${datanodes[@]}
   do
-    echo $nodemanager >> $HADOOP_PREFIX/etc/hadoop/slaves
+    echo $datanode >> $HADOOP_PREFIX/etc/hadoop/slaves
   done
 
   # $HADOOP_PREFIX/sbin/start-yarn.sh
