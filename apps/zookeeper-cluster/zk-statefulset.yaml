@@ -12,7 +12,6 @@ spec:
       app: zookeeper
   template:
     metadata:
-      creationTimestamp: 
       labels:
         app: zookeeper
     spec:
@@ -103,9 +102,5 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 2Gi
+          storage: 3Gi
   serviceName: zookeeper-headless
-  podManagementPolicy: OrderedReady
-  updateStrategy:
-    type: OnDelete
-  revisionHistoryLimit: 10
