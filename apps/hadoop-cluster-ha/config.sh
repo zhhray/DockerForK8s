@@ -4,6 +4,8 @@
 HADOOP_TMP_DIR=/usr/local/hadoop/tmp
 JOURNAL_DATA_DIR=/usr/local/hadoop/journaldata
 
+# Cluster default file system name
+DEFAULT_FS_NAME=cluster
 # Zookeeper cluster address
 ZOOKEEPER_ADDRESSES=$ZOOKEEPER_SERVER_SERVICE_HOST:$ZOOKEEPER_PORT
 # Namenode master hostname
@@ -20,10 +22,10 @@ JOURNALNODE_HOSTNAME=hadoop-hdfs-journalnode
 JOURNALNODE_HOST_0=hadoop-hdfs-journalnode-0.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
 JOURNALNODE_HOST_1=hadoop-hdfs-journalnode-1.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
 JOURNALNODE_HOST_2=hadoop-hdfs-journalnode-2.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
+# Set resourcemanager HA cluster-id
+RM_HA_ID=default
 # Resourcemanager hostname
 RESOURCE_MANAGER_HOSTNAME=hadoop-hdfs-resourcemanager
 # Resourcemanagers hostname can be accessed from other pods
 RESOURCE_MANAGER_HOST_0=hadoop-hdfs-resourcemanager-0.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
 RESOURCE_MANAGER_HOST_1=hadoop-hdfs-resourcemanager-1.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
-# Tell namenode and resourcemanager what the datanodes are
-DATANODES="hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-3.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local,hadoop-hdfs-datanode-4.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local"

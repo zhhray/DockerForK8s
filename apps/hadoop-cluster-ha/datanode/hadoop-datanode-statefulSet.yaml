@@ -10,7 +10,7 @@ metadata:
     hadoop/version: 2.7.3
     jdk/version: jdk1.8.0_161
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
       app: hadoop
