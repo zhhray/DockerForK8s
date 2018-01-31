@@ -1,0 +1,23 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: resourcemanager-configmap
+  labels:
+    app: hadoop
+data:
+  config.sh: |
+    #!/bin/bash
+
+    # Set resourcemanager HA cluster-id
+    RM_HA_ID=default
+    # Resourcemanager hostname
+    RESOURCE_MANAGER_HOSTNAME=hadoop-hdfs-resourcemanager
+    # Resourcemanagers hostname can be accessed from other pods
+    RESOURCE_MANAGER_HOST_0=hadoop-hdfs-resourcemanager-0.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
+    RESOURCE_MANAGER_HOST_1=hadoop-hdfs-resourcemanager-1.hadoop-resourcemanager-headless.$MY_NAMESPACE.svc.cluster.local
+  slaves: |
+    hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+    hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+    hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+

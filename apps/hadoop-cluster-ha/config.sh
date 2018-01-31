@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# HDFS config
 # Hadoop 临时数据存储目录
 HADOOP_TMP_DIR=/usr/local/hadoop/tmp
 JOURNAL_DATA_DIR=/usr/local/hadoop/journaldata
@@ -22,6 +23,8 @@ JOURNALNODE_HOSTNAME=hadoop-hdfs-journalnode
 JOURNALNODE_HOST_0=hadoop-hdfs-journalnode-0.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
 JOURNALNODE_HOST_1=hadoop-hdfs-journalnode-1.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
 JOURNALNODE_HOST_2=hadoop-hdfs-journalnode-2.hadoop-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
+
+# RM config
 # Set resourcemanager HA cluster-id
 RM_HA_ID=default
 # Resourcemanager hostname

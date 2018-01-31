@@ -22,10 +22,14 @@ spec:
         component: hadoop-datanode
     spec:
       volumes:
-      - name: hadoop-config
+      - name: hdfs-config
         configMap:
-          name: hadoop-cm
-          defaultMode: 420
+          name: hdfs-configmap
+          defaultMode: 420 
+      - name: rm-config
+        configMap:
+          name: resourcemanager-configmap
+          defaultMode: 420      
       containers:
       - name: hadoop-datanode
         image: zhhray/hadoop:2.7.3
@@ -63,10 +67,12 @@ spec:
             memory: 2Gi
           requests:
             cpu: 10m
-            memory: 256Mi
+            memory: 200Mi
         volumeMounts:
-        - name: hadoop-config
-          mountPath: "/tmp/hadoop"
+        - name: hdfs-config
+          mountPath: "/tmp/hadoop/hdfs"
+        - name: rm-config
+          mountPath: "/tmp/hadoop/resourcemanager"  
         - name: datadir
           mountPath: "/usr/local/hadoop/tmp" 
         terminationMessagePath: "/dev/termination-log"

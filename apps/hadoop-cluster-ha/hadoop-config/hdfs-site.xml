@@ -1,40 +1,40 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-  <!--指定hdfs的nameservice为masters，需要和core-site.xml中的保持一致 -->
+  <!--指定hdfs的nameservice需要和core-site.xml中的保持一致 -->
   <property>
     <name>dfs.nameservices</name>
-    <value>masters</value>
+    <value>DEFAULT_FS_NAME</value>
   </property>
   <!-- Master下面有两个NameNode，分别是Master，Standby -->
   <property>
-    <name>dfs.ha.namenodes.masters</name>
+    <name>dfs.ha.namenodes.DEFAULT_FS_NAME</name>
     <value>nn1,nn2</value>
   </property>
   <!-- Master的RPC通信地址 -->
   <property>
-    <name>dfs.namenode.rpc-address.masters.nn1</name>
+    <name>dfs.namenode.rpc-address.DEFAULT_FS_NAME.nn1</name>
     <value>NAMENODE_MASTER_HOST:NAMENODE_MASTER_RPC_PORT</value>
   </property>
   <!-- Master的http通信地址 -->
   <property>
-    <name>dfs.namenode.http-address.masters.nn1</name>
+    <name>dfs.namenode.http-address.DEFAULT_FS_NAME.nn1</name>
     <value>NAMENODE_MASTER_HOST:NAMENODE_MASTER_HTTP_PORT</value>
   </property>
   <!-- Standby的RPC通信地址 -->
   <property>
-    <name>dfs.namenode.rpc-address.masters.nn2</name>
+    <name>dfs.namenode.rpc-address.DEFAULT_FS_NAME.nn2</name>
     <value>NAMENODE_STANDBY_HOST:NAMENODE_STANDBY_RPC_PORT</value>
   </property>
   <!-- Standby的http通信地址 -->
   <property>
-    <name>dfs.namenode.http-address.masters.nn2</name>
+    <name>dfs.namenode.http-address.DEFAULT_FS_NAME.nn2</name>
     <value>NAMENODE_STANDBY_HOST:NAMENODE_STANDBY_HTTP_PORT</value>
   </property>
   <!-- 指定NameNode的元数据在JournalNode上的存放位置 -->
   <property>
     <name>dfs.namenode.shared.edits.dir</name>
-    <value>qjournal://JOURNALNODE_HOST_0:JOURNALNODE_PORT;JOURNALNODE_HOST_1:JOURNALNODE_PORT;JOURNALNODE_HOST_2:JOURNALNODE_PORT/masters</value>
+    <value>qjournal://JOURNALNODE_HOST_0:JOURNALNODE_PORT;JOURNALNODE_HOST_1:JOURNALNODE_PORT;JOURNALNODE_HOST_2:JOURNALNODE_PORT/DEFAULT_FS_NAME</value>
   </property>
   <!-- 指定JournalNode在本地磁盘存放数据的位置 -->
   <property>
@@ -48,7 +48,7 @@
   </property>
   <!-- 配置失败自动切换实现方式 -->
   <property>
-    <name>dfs.client.failover.proxy.provider.masters</name>
+    <name>dfs.client.failover.proxy.provider.DEFAULT_FS_NAME</name>
     <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
   </property>
   <!-- 配置隔离机制方法，多个机制用换行分割，即每个机制暂用一行-->
