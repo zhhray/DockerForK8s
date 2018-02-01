@@ -1,0 +1,38 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: cluster2-resourcemanager-headless
+  labels:
+    app: hadoop
+    component: hadoop-resourcemanager
+    cluster: cluster2
+spec:
+  ports:
+  - name: web
+    protocol: TCP
+    port: 8088
+    targetPort: 8088
+  - name: manager
+    protocol: TCP
+    port: 8032
+    targetPort: 8032
+  - name: scheduler
+    protocol: TCP
+    port: 8030
+    targetPort: 8030
+  - name: tracker
+    protocol: TCP
+    port: 8031
+    targetPort: 8031
+  - name: admin
+    protocol: TCP
+    port: 8033
+    targetPort: 8033
+  selector:
+    app: hadoop
+    component: hadoop-resourcemanager
+    cluster: cluster2
+  clusterIP: None  
+  type: ClusterIP
+  sessionAffinity: None

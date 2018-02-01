@@ -1,0 +1,39 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cluster2-hdfs-configmap
+  labels:
+    app: hadoop
+    cluster: cluster2
+data:
+  config.sh: |
+    #!/bin/bash
+
+    # Hadoop 临时数据存储目录
+    HADOOP_TMP_DIR=/usr/local/hadoop/tmp
+    JOURNAL_DATA_DIR=/usr/local/hadoop/journaldata
+
+    # Cluster default file system name
+    DEFAULT_FS_NAME=cluster2
+    # Zookeeper cluster address
+    ZOOKEEPER_ADDRESSES=$ZOOKEEPER_SERVER_SERVICE_HOST:$ZOOKEEPER_PORT
+    # Namenode master hostname
+    NAMENODE_MASTER_HOSTNAME=cluster2-hdfs-namenode-0
+    # Namenode master hostname can be accessed from other pods
+    NAMENODE_MASTER_HOST=$NAMENODE_MASTER_HOSTNAME.cluster2-namenode-headless.$MY_NAMESPACE.svc.cluster.local
+    # Namenode standby hostname
+    NAMENODE_STANDBY_HOSTNAME=cluster2-hdfs-namenode-1
+    # Namenode standby hostname can be accessed from other pods
+    NAMENODE_STANDBY_HOST=$NAMENODE_STANDBY_HOSTNAME.cluster2-namenode-headless.$MY_NAMESPACE.svc.cluster.local
+    # Journalnode hostname
+    JOURNALNODE_HOSTNAME=cluster2-hdfs-journalnode
+    # Journalnodes hostname can be accessed from other pods
+    JOURNALNODE_HOST_0=cluster2-hdfs-journalnode-0.cluster2-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
+    JOURNALNODE_HOST_1=cluster2-hdfs-journalnode-1.cluster2-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
+    JOURNALNODE_HOST_2=cluster2-hdfs-journalnode-2.cluster2-journalnode-headless.$MY_NAMESPACE.svc.cluster.local
+  slaves: |
+    cluster2-hdfs-datanode-0.cluster2-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+    cluster2-hdfs-datanode-1.cluster2-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+    cluster2-hdfs-datanode-2.cluster2-datanode-headless.$MY_NAMESPACE.svc.cluster.local
+

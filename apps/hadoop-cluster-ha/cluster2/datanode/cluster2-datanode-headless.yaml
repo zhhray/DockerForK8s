@@ -1,0 +1,42 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: cluster2-datanode-headless
+  labels:
+    app: hadoop
+    component: hadoop-datanode
+    cluster: cluster2
+spec:
+  ports:
+  - name: hdfs-client
+    protocol: TCP
+    port: 50010
+    targetPort: 50010
+  - name: hdfs-rpc
+    protocol: TCP
+    port: 50020
+    targetPort: 50020
+  - name: web-http
+    protocol: TCP
+    port: 50075
+    targetPort: 50075
+  - name: nodemanager-ipc
+    protocol: TCP
+    port: 8040
+    targetPort: 8040   
+  - name: nodemanager-address
+    protocol: TCP
+    port: 8041
+    targetPort: 8041
+  - name: nodemanager-webapp
+    protocol: TCP
+    port: 8042
+    targetPort: 8042      
+  selector:
+    app: hadoop
+    component: hadoop-datanode
+    cluster: cluster2
+  clusterIP: None  
+  type: ClusterIP
+  sessionAffinity: None

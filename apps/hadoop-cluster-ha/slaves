@@ -1,3 +1,0 @@
-hadoop-hdfs-datanode-0.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local
-hadoop-hdfs-datanode-1.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local
-hadoop-hdfs-datanode-2.hadoop-datanode-headless.$MY_NAMESPACE.svc.cluster.local

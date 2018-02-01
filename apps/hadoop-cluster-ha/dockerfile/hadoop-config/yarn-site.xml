@@ -38,6 +38,11 @@
     <name>yarn.resourcemanager.zk-address</name>
     <value>ZOOKEEPER_SERVERS</value>
   </property>
+  <!-- 指定rm state数据在zk存放的路径 -->
+  <property>
+    <name>yarn.resourcemanager.zk-state-store.parent-path</name>
+    <value>ZK_STATE_STORE_PATH</value>
+  </property>	
   <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>

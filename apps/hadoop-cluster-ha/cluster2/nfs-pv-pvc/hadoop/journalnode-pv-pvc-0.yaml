@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cluster2-journalnode-pv-0
+spec:
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: /k8s-nfs-storage/zhh/bigdata-cluster2/hadoopdata/journalnodedata-0
+    server: 10.221.105.172
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: datadir-cluster2-hdfs-journalnode-0
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi

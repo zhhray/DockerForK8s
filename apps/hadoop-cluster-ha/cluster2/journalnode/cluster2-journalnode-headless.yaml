@@ -1,0 +1,26 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: cluster2-journalnode-headless
+  labels:
+    app: hadoop
+    component: hadoop-journalnode
+    cluster: cluster2
+spec:
+  ports:
+  - name: journal-rpc
+    protocol: TCP
+    port: 8485
+    targetPort: 8485
+  - name: journal-http
+    protocol: TCP
+    port: 8480
+    targetPort: 8480
+  selector:
+    app: hadoop
+    component: hadoop-journalnode
+    cluster: cluster2
+  clusterIP: None  
+  type: ClusterIP
+  sessionAffinity: None

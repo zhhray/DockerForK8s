@@ -1,0 +1,135 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1beta2
+metadata:
+  name: cluster2-hdfs-namenode
+  labels:
+    app: hadoop
+    component: hadoop-namenode
+    cluster: cluster2
+  annotations:
+    hadoop/version: 2.7.3
+    jdk/version: jdk1.8.0_161
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hadoop
+      component: hadoop-namenode
+      cluster: cluster2
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: hadoop-namenode
+        cluster: cluster2
+    spec:
+      volumes:
+      - name: hdfs-config
+        configMap:
+          name: cluster2-hdfs-configmap
+          defaultMode: 420
+      - name: rm-config
+        configMap:
+          name: cluster2-rm-configmap
+          defaultMode: 420 
+      initContainers:
+      - name: init-set-label
+        command: 
+          - "sh"
+          - "-c"
+          - "/usr/local/bin/kubectl label pod ${HOSTNAME} set-hostname=${HOSTNAME}"
+        image: lachlanevenson/k8s-kubectl:v1.8.4
+      containers:
+      - name: cluster2-namenode
+        image: zhhray/hadoop:2.7.3
+        command:
+        - "/bin/bash"
+        - "/etc/hadoop-config/bootstrap.sh"
+        - "-d"
+        env:
+        - name: MY_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: hdfs-default
+          containerPort: 9000
+          protocol: TCP
+        - name: hdfs-client-rpc
+          containerPort: 8020
+          protocol: TCP  
+        - name: hdfs-datanode
+          containerPort: 9001
+          protocol: TCP
+        - name: web-http
+          containerPort: 50070
+          protocol: TCP 
+        - name: second-nn
+          containerPort: 50090
+          protocol: TCP  
+        - name: hdfs-zkfc
+          containerPort: 8019
+          protocol: TCP   
+        resources:
+          limits:
+            cpu: '1'
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 256Mi
+        volumeMounts:
+        - name: hdfs-config
+          mountPath: "/tmp/hadoop/hdfs"
+        - name: rm-config
+          mountPath: "/tmp/hadoop/resourcemanager" 
+        - name: datadir
+          mountPath: "/usr/local/hadoop/tmp"
+        livenessProbe:
+          httpGet:
+            path: "/"
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: "/"
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        terminationMessagePath: "/dev/termination-log"
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      ### podAntiAffinity 描述pod被调度的策略
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 5
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: hadoop-namenode
+                  cluster: cluster2
+              topologyKey: kubernetes.io/hostname           
+      schedulerName: default-scheduler
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi    
+  serviceName: cluster2-namenode-headless
+  podManagementPolicy: OrderedReady

@@ -1,0 +1,22 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: cluster2-resourcemanager-master-service
+  labels:
+    app: hadoop
+    component: hadoop-resourcemanager
+    cluster: cluster2
+spec:
+  ports:
+  - name: web
+    protocol: TCP
+    port: 8088
+    targetPort: 8088
+  selector:
+    app: hadoop
+    component: hadoop-resourcemanager
+    cluster: cluster2
+    set-hostname: cluster2-hdfs-resourcemanager-0
+  type: NodePort
+  sessionAffinity: None

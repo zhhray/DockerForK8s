@@ -1,0 +1,20 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: second-resourcemanager-standby-service
+  labels:
+    app: hadoop
+    component: second-resourcemanager
+spec:
+  ports:
+  - name: web
+    protocol: TCP
+    port: 8088
+    targetPort: 8088
+  selector:
+    app: hadoop
+    component: second-resourcemanager
+    set-hostname: second-hdfs-resourcemanager-1
+  type: NodePort
+  sessionAffinity: None
