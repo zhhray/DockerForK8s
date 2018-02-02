@@ -13,7 +13,7 @@ data:
     # Set resourcemanager HA cluster-id
     RM_HA_ID=cluster2
     # Set zookeeper state store parent path
-    ZK_STATE_STORE_PATH=/cluster2_rmstore
+    ZK_STATE_STORE_PATH=/rmstore/cluster2
     # Resourcemanager hostname
     RESOURCE_MANAGER_HOSTNAME=cluster2-hdfs-resourcemanager
     # Resourcemanagers hostname can be accessed from other pods
