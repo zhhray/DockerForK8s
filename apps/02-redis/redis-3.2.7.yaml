@@ -1,0 +1,63 @@
+kind: Deployment
+apiVersion: apps/v1beta2
+metadata:
+  name: redis
+  labels:
+    name: redis
+spec:
+  selector:
+    matchLabels:
+      name: redis
+  template:
+    metadata:
+      labels:
+        name: redis
+    spec:
+      containers:
+        - name: redis
+          image: 'index.tenxcloud.com/tenxcloud/redis:3.2.7'
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          env:
+            - name: PATH
+              value: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            - name: GOSU_VERSION
+              value: '1.7'
+            - name: REDIS_VERSION
+              value: 3.2.7
+            - name: REDIS_DOWNLOAD_URL
+              value: 'http://download.redis.io/releases/redis-3.2.7.tar.gz'
+            - name: REDIS_DOWNLOAD_SHA1
+              value: 6889af053020cd72ebb16805ead0ce9b3a69a9ef
+            - name: REDIS_PASSWORD
+              value: password
+          command:
+            - docker-entrypoint.sh
+          args:
+            - sh
+            - '-c'
+            - exec redis-server --requirepass "$REDIS_PASSWORD"
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 512Mi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  labels:
+    name: redis
+  annotations:
+    schemaPortname: redis-1/TCP
+spec:
+  ports:
+    - name: redis-1
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+  selector:
+    name: redis
+  type: NodePort  

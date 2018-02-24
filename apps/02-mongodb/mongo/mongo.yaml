@@ -1,0 +1,111 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+    name: mongodb
+    labels:
+        app: mongodb
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mongodb
+    template:
+        metadata:
+            labels:
+                app: mongodb
+        spec:
+            volumes:
+                -
+                    name: data
+                    persistentVolumeClaim:
+                        claimName:  mongodb-pvc
+            containers:
+                -
+                    name: mongodb
+                    image: 'bitnami/mongodb:3.7.1-r0'
+                    ports:
+                        -
+                            name: mongodb
+                            containerPort: 27017
+                            protocol: TCP
+                    env:
+                        -
+                            name: MONGODB_ROOT_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: mongodb-secret
+                                    key: mongodb-root-password
+                        -
+                            name: MONGODB_USERNAME
+                        -
+                            name: MONGODB_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: mongodb-secret
+                                    key: mongodb-password
+                        -
+                            name: MONGODB_DATABASE
+                    resources:
+                        requests:
+                            cpu: 100m
+                            memory: 256Mi
+                    volumeMounts:
+                        -
+                            name: data
+                            mountPath: /bitnami/mongodb
+                    livenessProbe:
+                        exec:
+                            command:
+                                - mongo
+                                - '--eval'
+                                - 'db.adminCommand(''ping'')'
+                        initialDelaySeconds: 30
+                        timeoutSeconds: 5
+                        periodSeconds: 10
+                        successThreshold: 1
+                        failureThreshold: 3
+                    readinessProbe:
+                        exec:
+                            command:
+                                - mongo
+                                - '--eval'
+                                - 'db.adminCommand(''ping'')'
+                        initialDelaySeconds: 5
+                        timeoutSeconds: 1
+                        periodSeconds: 10
+                        successThreshold: 1
+                        failureThreshold: 3
+                    terminationMessagePath: /dev/termination-log
+                    terminationMessagePolicy: File
+                    imagePullPolicy: IfNotPresent
+            restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: mongodb-service
+    labels:
+        app: mongodb
+spec:
+    ports:
+        -
+            name: mongodb
+            protocol: TCP
+            port: 27017
+            targetPort: mongodb
+    selector:
+        app: mongodb
+    type: NodePort
+
+---
+kind: Secret
+apiVersion: v1
+metadata:
+    name: mongodb-secret
+    labels:
+        app: mongodb
+data:
+    mongodb-password: UVpXbktSNzc2Wg==
+    mongodb-root-password: aVJHTHUzWEo4VA==
+type: Opaque

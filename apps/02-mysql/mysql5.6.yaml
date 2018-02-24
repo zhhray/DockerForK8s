@@ -1,32 +1,4 @@
 ---
-# Define PV
-# This is an example of NFS type pv, you can set up your own NFS service 
-# and modify the configuration
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-nfs
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteMany
-  nfs:
-    path: /k8s-nfs-storage/mysql-data
-    server: 10.221.105.172
----
-# Define PVC
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pv-claim
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 2Gi
----
 # Define Deployment
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -73,6 +45,6 @@ spec:
   ports:
   - name: mysql
     port: 3306
-    nodeport: 30306
+    nodePort: 30306
   selector:
     app: mysql          

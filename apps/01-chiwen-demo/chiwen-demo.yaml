@@ -1,0 +1,39 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: chiwen-demo-service
+spec:
+  selector:
+    app: miaoyun
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---    
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: chiwen-demo
+spec:
+  template:
+    metadata:
+      labels:
+        app: miaoyun
+    spec:
+      containers:
+      - name: chiwen-demo
+        image: miaoyun/chiwen-demo
+        ports: 
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-daemon
+      volumes:
+      - name: docker-daemon
+        hostPath:
+          path: /var/run/docker.sock 
+
+ 

@@ -1,0 +1,64 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: httpd
+  labels:
+    name: httpd
+  annotations:
+    schemaPortname: httpd-1/TCP
+spec:
+  ports:
+    - name: httpd-1
+      protocol: TCP
+      targetPort: 80
+      port: 80
+  selector:
+    name: httpd
+  type: NodePort
+---
+kind: Deployment
+apiVersion: apps/v1beta2
+metadata:
+  name: httpd
+  labels:
+    name: httpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: httpd
+  template:
+    metadata:
+      labels:
+        name: httpd
+    spec:
+      containers:
+        - name: httpd
+          image: 'index.tenxcloud.com/tenxcloud/httpd:2.4.25'
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: PATH
+              value: >-
+                /usr/local/apache2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: HTTPD_PREFIX
+              value: /usr/local/apache2
+            - name: NGHTTP2_VERSION
+              value: 1.17.0-1
+            - name: HTTPD_VERSION
+              value: 2.4.25
+            - name: HTTPD_SHA1
+              value: bd6d138c31c109297da2346c6e7b93b9283993d2
+            - name: HTTPD_BZ2_URL
+              value: 'https://www.apache.org/dyn/closer.cgi?action'
+            - name: HTTPD_ASC_URL
+              value: 'https://www.apache.org/dist/httpd/httpd-2.4.25.tar.bz2.asc'
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 512Mi
+          args:
+            - httpd-foreground
+          imagePullPolicy: Always

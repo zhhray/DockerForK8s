@@ -1,0 +1,169 @@
+---
+kind: Deployment
+apiVersion: apps/v1beta2
+metadata:
+    name: illmannered-flee-redis-ha-sentinel
+    labels:
+        app: redis-ha
+        name: illmannered-flee-redis-ha-sentinel
+        release: illmannered-flee
+    annotations:
+        deployment.kubernetes.io/revision: '1'
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: redis-ha
+            name: illmannered-flee-redis-ha-sentinel
+            release: illmannered-flee
+    template:
+        metadata:
+            labels:
+                app: redis-ha
+                name: illmannered-flee-redis-ha-sentinel
+                release: illmannered-flee
+        spec:
+            containers:
+                -
+                    name: sentinel
+                    image: 'quay.io/smile/redis:4.0.6r2'
+                    ports:
+                        -
+                            containerPort: 26379
+                            protocol: TCP
+                    env:
+                        -
+                            name: SENTINEL
+                            value: 'true'
+                        -
+                            name: REDIS_CHART_PREFIX
+                            value: illmannered-flee-redis-ha-
+                    resources:
+                        limits:
+                            memory: 200Mi
+                        requests:
+                            cpu: 100m
+                            memory: 200Mi
+                    terminationMessagePath: /dev/termination-log
+                    terminationMessagePolicy: File
+                    imagePullPolicy: IfNotPresent
+            restartPolicy: Always
+
+---
+kind: Deployment
+apiVersion: apps/v1beta2
+metadata:
+    name: illmannered-flee-redis-ha-server
+    labels:
+        app: redis-ha
+        name: redis-server
+        redis-node: 'true'
+        release: illmannered-flee
+    annotations:
+        deployment.kubernetes.io/revision: '1'
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: redis-ha
+            name: redis-server
+            redis-node: 'true'
+            release: illmannered-flee
+    template:
+        metadata:
+            labels:
+                app: redis-ha
+                name: redis-server
+                redis-node: 'true'
+                release: illmannered-flee
+        spec:
+            volumes:
+                -
+                    name: data
+                    emptyDir: {  }
+            containers:
+                -
+                    name: redis
+                    image: 'quay.io/smile/redis:4.0.6r2'
+                    ports:
+                        -
+                            containerPort: 6379
+                            protocol: TCP
+                    env:
+                        -
+                            name: REDIS_SENTINEL_SERVICE_HOST
+                            value: redis-sentinel
+                        -
+                            name: REDIS_CHART_PREFIX
+                            value: illmannered-flee-redis-ha-
+                    resources:
+                        limits:
+                            memory: 700Mi
+                        requests:
+                            cpu: 100m
+                            memory: 200Mi
+                    volumeMounts:
+                        -
+                            name: data
+                            mountPath: /redis-master-data
+                    terminationMessagePath: /dev/termination-log
+                    terminationMessagePolicy: File
+                    imagePullPolicy: IfNotPresent
+            restartPolicy: Always
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: illmannered-flee-redis-ha-master-svc
+spec:
+    ports:
+        -
+            protocol: TCP
+            port: 6379
+            targetPort: 6379
+    selector:
+        app: redis-ha
+        redis-node: 'true'
+        redis-role: master
+        release: illmannered-flee
+    type: ClusterIP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: illmannered-flee-redis-ha-sentinel
+    labels:
+        app: redis-ha
+        name: redis-ha-sentinel-svc
+        release: illmannered-flee
+        role: service
+spec:
+    ports:
+        -
+            protocol: TCP
+            port: 26379
+            targetPort: 26379
+    selector:
+        redis-role: sentinel
+        release: illmannered-flee
+    type: ClusterIP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: illmannered-flee-redis-ha-slave-svc
+spec:
+    ports:
+        -
+            protocol: TCP
+            port: 6379
+            targetPort: 6379
+    selector:
+        app: redis-ha
+        redis-node: 'true'
+        redis-role: slave
+        release: illmannered-flee
+    type: ClusterIP
+            
