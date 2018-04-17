@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-redmon-redis
+  labels:
+    app: {{ APP_NAME }}-redmon
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: {{ APP_NAME }}-redmon
+    tier: redis
+  clusterIP: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-redmon-redis
+  labels:
+    app: {{ APP_NAME }}-redmon
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-redmon-redis
+      labels:
+        app: {{ APP_NAME }}-redmon
+        tier: redis
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-redmon-redis
+        image: daocloud.io/redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-redmon
+spec:
+  type: NodePort
+  ports:
+  - port: 4567
+  selector:
+    app: {{ APP_NAME }}-redmon
+    tier: fronted
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-redmon
+  labels:
+    app: {{ APP_NAME }}-redmon
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-redmon
+      labels:
+        app: {{ APP_NAME }}-redmon
+        tier: fronted
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-redmon
+        image: daocloud.io/daocloud/redmon
+        ports:
+        - containerPort: 4567
+        env:
+        - name: REDIS
+          value: "redis://{{ APP_NAME }}-redmon-redis:6379"

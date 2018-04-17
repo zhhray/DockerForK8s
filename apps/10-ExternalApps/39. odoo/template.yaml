@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-db
+  labels:
+    app: {{ APP_NAME }}-odoo
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: {{ APP_NAME }}-odoo
+    tier: postgres
+  clusterIP: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-db
+  labels:
+    app: {{ APP_NAME }}-odoo
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-db
+      labels:
+        app: {{ APP_NAME }}-odoo
+        tier: postgres
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-db
+        image: daocloud.io/postgres:9.4
+        env:
+        - name: POSTGRES_USER
+          value: odoo
+        - name: POSTGRES_PASSWORD
+          value: odoo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-odoo
+spec:
+  type: NodePort
+  ports:
+  - port: 8069
+  selector:
+    app: {{ APP_NAME }}-odoo
+    tier: fronted
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-odoo
+  labels:
+    app: {{ APP_NAME }}-odoo
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-odoo
+      labels:
+        app: {{ APP_NAME }}-odoo
+        tier: fronted
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-odoo
+        image: daocloud.io/odoo
+        ports:
+        - containerPort: 8069
+        env:
+        - name: HOST
+          value: {{ APP_NAME }}-db

@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-service-discovery
+  labels:
+    app: {{ APP_NAME }}-service-discovery
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-service-discovery
+      labels:
+        app: {{ APP_NAME }}-service-discovery
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-service-discovery
+        image: daocloud.io/grissomsh/config-server:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-service-discovery
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-service-discovery

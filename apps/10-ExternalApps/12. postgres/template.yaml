@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-postgres
+  labels:
+    app: {{ APP_NAME }}-postgres
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-postgres
+      labels:
+        app: {{ APP_NAME }}-postgres
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-postgres
+        image: daocloud.io/postgres:latest
+        ports:
+          - containerPort: 5432
+        env:
+          - name: POSTGRES_PASSWORD
+            value: {{ postgres_password }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-postgres
+  labels:
+    app: {{ APP_NAME }}-postgres
+spec:
+  type: NodePort
+  ports:
+  - port: 5432
+  selector:
+    app: {{ APP_NAME }}-postgres

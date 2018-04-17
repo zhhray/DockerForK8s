@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-mysql
+  labels:
+    app: {{ APP_NAME }}-mysql
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-mysql
+      labels:
+        app: {{ APP_NAME }}-mysql
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-mysql
+        image: daocloud.io/library/mysql:latest
+        ports:
+          - containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: {{ MYSQL_ROOT_PASSWORD }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: data
+        hostPath:
+          path: /data/mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-mysql
+  labels:
+    app: {{ APP_NAME }}-mysql
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+  selector:
+    app: {{ APP_NAME }}-mysql

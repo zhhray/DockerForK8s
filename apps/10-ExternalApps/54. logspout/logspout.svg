@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>画板 1</title>
+  <rect width="100" height="100" fill="#98fc66"/>
+  <g>
+    <circle cx="49.976" cy="29.82" r="5" transform="translate(-6.448 44.073) rotate(-45)" fill="#08a5ce"/>
+    <circle cx="59.69" cy="39.474" r="5" transform="translate(-10.429 53.769) rotate(-45)" fill="#575759"/>
+    <circle cx="69.326" cy="49.215" r="5" transform="translate(-14.495 63.436) rotate(-45)" fill="#08a5ce"/>
+    <circle cx="40.303" cy="39.534" r="5" transform="translate(-16.15 40.078) rotate(-45)" fill="#08a5ce"/>
+    <circle cx="50.019" cy="49.195" r="5" transform="translate(-20.136 49.778) rotate(-45)" fill="#08a5ce"/>
+    <circle cx="59.67" cy="58.781" r="5" transform="translate(-24.088 59.409) rotate(-45)" fill="#575759"/>
+    <circle cx="30.709" cy="49.167" r="5" transform="translate(-25.772 36.116) rotate(-45)" fill="#575759"/>
+    <circle cx="40.289" cy="58.838" r="5" transform="translate(-29.804 45.722) rotate(-45)" fill="#575759"/>
+    <circle cx="49.999" cy="68.502" r="5" transform="translate(-33.794 55.418) rotate(-45)" fill="#575759"/>
+  </g>
+</svg>

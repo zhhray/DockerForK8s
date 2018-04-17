@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dockercloud-haproxy
+  labels:
+    app: {{ APP_NAME }}-dockercloud-haproxy
+spec:
+  template:
+    metadata:
+      name: dockercloud-haproxy
+      labels:
+        app: {{ APP_NAME }}-dockercloud-haproxy
+    spec:
+      initContainers:
+      - name: {{ APP_NAME }}-2048
+        image: daocloud.io/daocloud/dao-2048
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+        env:
+          - name: VIRTUAL_HOST
+            value: "*"
+          - name: SERVICE_PORTS
+            value: "80"
+      containers:
+      - name: {{ APP_NAME }}-dockercloud-haproxy
+        image: daocloud.io/daocloud/dockercloud-haproxy
+        ports:
+        - containerPort: 80
+          name: haproxy-0
+        - containerPort: 1936
+          name: haproxy-1
+        volumeMounts:
+        - name: docker
+          mountPath: /var/run/docker.sock
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+        env:
+          - name: ADDITIONAL_SERVICES
+            value: "project_dir:dao-2048"
+      volumes:
+        - name: docker
+          hostPath:
+            path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dockercloud-haproxy
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    name: haproxy-0
+  - port: 1936
+    name: haproxy-1
+  selector:
+    app: {{ APP_NAME }}-dockercloud-haproxy

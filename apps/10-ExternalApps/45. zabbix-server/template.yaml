@@ -1,0 +1,86 @@
+#db_user	db user	字符串	The db user name	是	zabbix
+#db_password	db password	字符串	The db user password	是	password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-zabbix-server-mysql
+  labels:
+    app: {{ APP_NAME }}-zabbix-server
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: {{ APP_NAME }}-zabbix-server
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-zabbix-server-mysql
+  labels:
+    app: {{ APP_NAME }}-zabbix-server
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ APP_NAME }}-zabbix-server
+        tier: mysql
+    spec:
+      containers:
+      - image: daocloud.io/mysql:5.6
+        name: {{ APP_NAME }}-zabbix-server-mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{db_password}}
+        - name: MYSQL_DATABASE
+          value: {{db_name}}
+        ports:
+        - containerPort: 3306
+          name: mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-zabbix-server
+spec:
+  type: NodePort
+  ports:
+  - port: 10051
+    name: zabbix-server-0
+  - port: 80
+    name: zabbix-server-1
+  selector:
+    app: {{ APP_NAME }}-zabbix-server
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-zabbix-server
+  labels:
+    app: {{ APP_NAME }}-zabbix-server
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-zabbix-server
+      labels:
+        app: {{ APP_NAME }}-zabbix-server
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-zabbix-server
+        image: daocloud.io/daocloud/zabbix-web-nginx-mysql:ubuntu-3.2-latest
+        ports:
+        - containerPort: 10051
+          name: zabbix-server-0
+        - containerPort: 80
+          name: zabbix-server-1
+        env:
+        - name: DB_SERVER_HOST
+          value: {{ APP_NAME }}-zabbix-server-mysql
+        - name: MYSQL_USER
+          value: root
+        - name: MYSQL_PASSWORD
+          value: {{db_password}}
+        - name: MYSQL_DATABASE
+          value: {{db_name}}

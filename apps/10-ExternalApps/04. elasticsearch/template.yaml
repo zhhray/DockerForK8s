@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-elasticsearch
+  labels:
+    app: {{ APP_NAME }}-elasticsearch
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-elasticsearch
+      labels:
+        app: {{ APP_NAME }}-elasticsearch
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-elasticsearch
+        image: daocloud.io/daocloud/dao-elasticsearch
+        ports:
+          - containerPort: 9200
+            name: elasticsearch-0
+          - containerPort: 9300
+            name: elasticsearch-1
+        command: ["elasticsearch", "-Dnetwork.host=0.0.0.0"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-elasticsearch
+  labels:
+    app: {{ APP_NAME }}-elasticsearch
+spec:
+  type: NodePort
+  ports:
+  - port: 9200
+    name: elasticsearch-0
+  - port: 9300
+    name: elasticsearch-1
+  selector:
+    app: {{ APP_NAME }}-elasticsearch

@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-fedora
+  labels:
+    app: {{ APP_NAME }}-fedora
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-fedora
+      labels:
+        app: {{ APP_NAME }}-fedora
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-fedora
+        image: daocloud.io/fedora:latest
+        command: ["sleep", "infinity"]

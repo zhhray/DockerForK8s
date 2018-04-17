@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-centos
+  labels:
+    app: {{ APP_NAME }}-centos
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-centos
+      labels:
+        app: {{ APP_NAME }}-centos
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-centos
+        image: daocloud.io/centos:latest
+        command: ["sleep", "infinity"]
+

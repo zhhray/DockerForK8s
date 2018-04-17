@@ -1,0 +1,45 @@
+# Username: weblogic
+# Password: welcome1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-weblogic
+  labels:
+    app: {{ APP_NAME }}-weblogic
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-weblogic
+      labels:
+        app: {{ APP_NAME }}-weblogic
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-weblogic
+        image: daocloud.io/daocloud/weblogic12
+        ports:
+        - containerPort: 7001
+          name: weblogic-0
+        - containerPort: 7002
+          name: weblogic-1
+        - containerPort: 5556
+          name: weblogic-2
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-weblogic
+spec:
+  type: NodePort
+  ports:
+  - port: 7001
+    name: weblogic-0
+  - port: 7002
+    name: weblogic-1
+  - port: 5556
+    name: weblogic-2
+  selector:
+    app: {{ APP_NAME }}-weblogic

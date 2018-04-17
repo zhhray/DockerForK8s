@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-mongo
+  labels:
+    app: {{ APP_NAME }}-mongo
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-mongo
+      labels:
+        app: {{ APP_NAME }}-mongo
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-mongo
+        image: daocloud.io/mongo:latest
+        ports:
+        - containerPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-mongo
+spec:
+  type: NodePort
+  ports:
+  - port: 27017
+  selector:
+    app: {{ APP_NAME }}-mongo

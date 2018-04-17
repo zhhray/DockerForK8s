@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-websphere-liberty
+  labels:
+    app: {{ APP_NAME }}-websphere-liberty
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-websphere-liberty
+      labels:
+        app: {{ APP_NAME }}-websphere-liberty
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-websphere-liberty
+        image: daocloud.io/websphere-liberty
+        ports:
+        - containerPort: 9080
+          name: websphere-liberty-0
+        - containerPort: 9443
+          name: websphere-liberty-1
+        resources:
+          limits:
+            cpu: "0.8"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-websphere-liberty
+spec:
+  type: NodePort
+  ports:
+  - port: 9080
+    name: websphere-liberty-0
+  - port: 9443
+    name: websphere-liberty-1
+  selector:
+    app: {{ APP_NAME }}-websphere-liberty

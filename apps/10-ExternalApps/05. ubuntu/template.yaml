@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-ubuntu
+  labels:
+    app: {{ APP_NAME }}-ubuntu
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-ubuntu
+      labels:
+        app: {{ APP_NAME }}-ubuntu
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-ubuntu
+        image: daocloud.io/ubuntu:latest
+        command: ["sleep", "infinity"]
+

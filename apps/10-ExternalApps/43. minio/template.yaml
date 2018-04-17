@@ -1,0 +1,55 @@
+#minio_access_key	Access Key	字符串	Access key string of 5 to 20 characters in length.	是	IQP18YBF51DG8HSZEE7B
+#minio_secret_key	Secret Key	字符串	Secret key string of 8 to 40 characters in length	是	AlDzw6dj9zfne8JhPwGa
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-minio
+  labels:
+    app: {{ APP_NAME }}-minio
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-minio
+      labels:
+        app: {{ APP_NAME }}-minio
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-minio
+        image: daocloud.io/daocloud/minio
+        args: ["server", "/export"]
+        ports:
+        - containerPort: 9000
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: {{ minio_access_key }}
+        - name: MINIO_SECRET_KEY
+          value: {{ minio_secret_key }}
+        volumeMounts:
+        - name: data
+          mountPath: /export
+        - name: config
+          mountPath: /root/.minio
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: data
+        hostPath:
+          path: minio-data
+      - name: config
+        hostPath:
+          path: minio-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-minio
+spec:
+  type: NodePort
+  ports:
+  - port: 9000
+  selector:
+    app: {{ APP_NAME }}-minio

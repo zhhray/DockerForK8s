@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-drupal
+  labels:
+    app: {{ APP_NAME }}-drupal
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: {{ APP_NAME }}-drupal
+    tier: frontend
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-drupal
+  labels:
+    app: {{ APP_NAME }}-drupal
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ APP_NAME }}-drupal
+        tier: frontend
+    spec:
+      containers:
+      - image: daocloud.io/drupal
+        name: {{ APP_NAME }}-drupal
+        ports:
+        - containerPort: 80
+          name: drupal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-mysql
+  labels:
+    app: {{ APP_NAME }}-drupal
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: {{ APP_NAME }}-drupal
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-mysql
+  labels:
+    app: {{ APP_NAME }}-drupal
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ APP_NAME }}-drupal
+        tier: mysql
+    spec:
+      containers:
+      - image: daocloud.io/mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: dangerous
+        ports:
+        - containerPort: 3306
+          name: mysql

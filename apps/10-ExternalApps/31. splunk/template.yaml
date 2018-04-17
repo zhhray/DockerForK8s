@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-splunk
+  labels:
+    app: {{ APP_NAME }}-splunk
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-splunk
+      labels:
+        app: {{ APP_NAME }}-splunk
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-splunk
+        image: daocloud.io/daocloud/splunk
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SPLUNK_START_ARGS
+          value: "--accept-license"
+        volumeMounts:
+        - name: splunk-etc
+          mountPath: /opt/splunk/etc
+        - name: splunk-var
+          mountPath: /opt/splunk/var
+      volumes:
+      - name: splunk-etc
+        hostPath:
+          path: /opt/splunk/etc
+      - name: splunk-var
+        hostPath:
+          path: /opt/splunk/var
+      hostname: splunk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-splunk
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+  selector:
+    app: {{ APP_NAME }}-splunk

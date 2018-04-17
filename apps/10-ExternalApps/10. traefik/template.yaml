@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-traefik
+  labels:
+    app: {{ APP_NAME }}-traefik
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-traefik
+      labels:
+        app: {{ APP_NAME }}-traefik
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-traefik
+        image: daocloud.io/traefik
+        ports:
+        - containerPort: 80
+          name: traefik-0
+        - containerPort: 8080
+          name: traefik-1
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-traefik
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    name: traefik-0
+  - port: 8080
+    name: traefik-1
+  selector:
+    app: {{ APP_NAME }}-traefik

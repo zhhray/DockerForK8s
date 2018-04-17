@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-redmine-mysql
+  labels:
+    app: {{ APP_NAME }}-redmine
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: {{ APP_NAME }}-redmine
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-redmine-mysql
+  labels:
+    app: {{ APP_NAME }}-redmine
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-redmine-mysql
+      labels:
+        app: {{ APP_NAME }}-redmine
+        tier: mysql
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-redmine-mysql
+        image: daocloud.io/mysql:latest
+        env:
+        - name: MYSQL_DATABASE
+          value: redmine
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ mysql_root_password }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-redmine
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+  selector:
+    app: {{ APP_NAME }}-redmine
+    tier: fronted
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-redmine
+  labels:
+    app: {{ APP_NAME }}-redmine
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-redmine
+      labels:
+        app: {{ APP_NAME }}-redmine
+        tier: fronted
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-redmine
+        image: daocloud.io/redmine:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: REDMINE_DB_MYSQL
+          value: {{ APP_NAME }}-redmine-mysql
+        - name: REDMINE_DB_PASSWORD
+          value: {{ mysql_root_password }}

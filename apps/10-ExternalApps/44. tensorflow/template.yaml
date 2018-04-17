@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-tensorflow
+  labels:
+    app: {{ APP_NAME }}-tensorflow
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-tensorflow
+      labels:
+        app: {{ APP_NAME }}-tensorflow
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-tensorflow
+        image: daocloud.io/daocloud/tensorflow:latest
+        ports:
+        - containerPort: 8888
+          name: tensorflow-0
+        - containerPort: 6006
+          name: tensorflow-1
+        resources:
+          limits:
+            cpu: "0.9"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-tensorflow
+spec:
+  type: NodePort
+  ports:
+  - port: 8888
+    name: tensorflow-0
+  - port: 6006
+    name: tensorflow-1
+  selector:
+    app: {{ APP_NAME }}-tensorflow

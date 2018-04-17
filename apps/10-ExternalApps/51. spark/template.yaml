@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-spark
+  labels:
+    app: {{ APP_NAME }}-spark
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-spark
+      labels:
+        app: {{ APP_NAME }}-spark
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-spark
+        image: daocloud.io/daocloud/spark:1.6.0
+        args:
+          - "-d"
+        ports:
+          - containerPort: 8088
+          - containerPort: 8042
+          - containerPort: 4040
+        resources:
+          limits:
+            cpu: "0.9"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-spark
+  labels:
+    app: {{ APP_NAME }}-spark
+spec:
+  type: NodePort
+  ports:
+  - port: 8088
+    name: spark-1
+  - port: 8042
+    name: spark-2
+  - port: 4040
+    name: spark-3
+  selector:
+    app: {{ APP_NAME }}-spark

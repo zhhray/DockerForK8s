@@ -1,0 +1,51 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-zabbix-agent
+  labels:
+    app: {{ APP_NAME }}-zabbix-agent
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-zabbix-agent
+      labels:
+        app: {{ APP_NAME }}-zabbix-agent
+        io.daocloud.dce.compose.mode: Global
+    spec:
+      hostname: {{hostname}}
+      containers:
+      - name: {{ APP_NAME }}-zabbix-agent
+        image: daocloud.io/daocloud/zabbix-agent-xxl-limited
+        ports:
+        - containerPort: 10050
+        env:
+        - name: ZA_Server
+          value: {{ZA_Server}}
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "2147483648"
+        volumeMounts:
+        - name: data
+          mountPath: /rootfs
+        - name: run
+          mountPath: /var/run
+      volumes:
+      - name: data
+        hostPath:
+          path: /
+      - name: run
+        hostPath:
+          path: /var/run
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-zabbix-agent
+spec:
+  type: NodePort
+  ports:
+  - port: 10050
+    nodePort: 10050
+  selector:
+    app: {{ APP_NAME }}-zabbix-agent

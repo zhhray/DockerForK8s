@@ -1,0 +1,48 @@
+#log_server_address	Server Address	字符串	Log Server Address	是	syslog+udp://logs-01.loggly.com:514
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-logspout
+  labels:
+    app: {{ APP_NAME }}-logspout
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-logspout
+      labels:
+        app: {{ APP_NAME }}-logspout
+        io.daocloud.dce.compose.mode: Global
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-logspout
+        image: daocloud.io/daocloud/logspout
+        ports:
+          - containerPort: 3306
+        command: ["/bin/logspout"]
+        args: [ "{{ log_server_address }}" ]
+        volumeMounts:
+        - name: docker
+          mountPath: /var/run/docker.sock
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: docker
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-logspout
+  labels:
+    app: {{ APP_NAME }}-logspout
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+  selector:
+    app: {{ APP_NAME }}-logspout

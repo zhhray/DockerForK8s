@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-gitlab
+  labels:
+    app: {{ APP_NAME }}-gitlab
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-gitlab
+      labels:
+        app: {{ APP_NAME }}-gitlab
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-gitlab
+        image: daocloud.io/daocloud/gitlab-ce:latest
+        ports:
+        - containerPort: 443
+          name: https
+        - containerPort: 80
+          name: http
+        - containerPort: 22
+          name: ssh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-gitlab
+spec:
+  type: NodePort
+  ports:
+  - port: 443
+    name: https
+  - port: 80
+    name: http
+  - port: 22
+    name: ssh
+  selector:
+    app: {{ APP_NAME }}-gitlab

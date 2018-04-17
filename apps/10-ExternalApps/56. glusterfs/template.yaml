@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-glusterfs
+  labels:
+    app: {{ APP_NAME }}-glusterfs
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-glusterfs
+      labels:
+        app: {{ APP_NAME }}-glusterfs
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-glusterfs
+        image: daocloud.io/daocloud/glusterfs
+        securityContext:
+          capabilities:
+            add:
+              - SYS_ADMIN
+          privileged: true

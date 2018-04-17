@@ -1,0 +1,71 @@
+#access_key	Access Key	字符串	the access key of sysdig	是	********-****-****-****-************
+#tags	Tags	字符串	the optional list of tags	否	role:webserver,location:china
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-sysdig-agent
+  labels:
+    app: {{ APP_NAME }}-sysdig-agent
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-sysdig-agent
+      labels:
+        app: {{ APP_NAME }}-sysdig-agent
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-sysdig-agent
+        image: daocloud.io/daocloud/sysdig-agent
+        securityContext:
+          privileged: true
+        env:
+        - name: ACCESS_KEY
+          value: "{{ access_key }}"
+        - name: TAGS
+          value: {{ tags }}
+        resources:
+          limits:
+            cpu: "0.8"
+            memory: "2147483648"
+        volumeMounts:
+        - name: docker
+          mountPath: /host/var/run/docker.sock
+        - name: dev
+          mountPath: /host/dev
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: boot
+          mountPath: /host/boot
+          readOnly: true
+        - name: modules
+          mountPath: /host/lib/modules
+          readOnly: true
+        - name: usr
+          mountPath: /host/usr
+          readOnly: true
+      volumes:
+      - name: docker
+        hostPath:
+          path: /var/run/docker.sock
+      - name: dev
+        hostPath:
+          path: /dev
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: boot
+        hostPath:
+          path: /boot
+      - name: modules
+        hostPath:
+          path: /lib/modules
+      - name: usr
+        hostPath:
+          path: /usr
+      hostNetwork: true
+      hostPID: true
+
+# affinity:container!=*sysdig-agent*

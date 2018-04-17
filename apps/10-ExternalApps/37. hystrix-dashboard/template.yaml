@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-hystrix-dashboard
+  labels:
+    app: {{ APP_NAME }}-hystrix-dashboard
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-hystrix-dashboard
+      labels:
+        app: {{ APP_NAME }}-hystrix-dashboard
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-hystrix-dashboard
+        image: daocloud.io/grissomsh/hystrix-dashboard:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-hystrix-dashboard
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-hystrix-dashboard

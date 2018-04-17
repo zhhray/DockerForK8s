@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-cadvisor
+  labels:
+    app: {{ APP_NAME }}-cadvisor
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-cadvisor
+      labels:
+        app: {{ APP_NAME }}-cadvisor
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-cadvisor
+        image: daocloud.io/daocloud/cadvisor:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: rootfs
+          mountPath: /rootfs
+        - name: run
+          mountPath: /var/run
+        - name: sys
+          mountPath: /sys
+        - name: docker
+          mountPath: /var/lib/docker
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: rootfs
+        hostPath:
+          path: /
+      - name: run
+        hostPath:
+          path: /var/run
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: docker
+        hostPath:
+          path: /var/lib/docker/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-cadvisor
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-cadvisor

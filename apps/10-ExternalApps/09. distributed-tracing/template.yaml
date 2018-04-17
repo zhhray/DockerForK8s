@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-distributed-tracing
+  labels:
+    app: {{ APP_NAME }}-distributed-tracing
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-distributed-tracing
+      labels:
+        app: {{ APP_NAME }}-distributed-tracing
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-distributed-tracing
+        image: daocloud.io/grissomsh/zipkin-service:latest
+        ports:
+        - containerPort: 9411
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-distributed-tracing
+spec:
+  type: NodePort
+  ports:
+  - port: 9411
+  selector:
+    app: {{ APP_NAME }}-distributed-tracing

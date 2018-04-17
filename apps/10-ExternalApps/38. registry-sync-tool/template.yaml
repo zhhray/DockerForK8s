@@ -1,0 +1,68 @@
+#dst_registry	目标镜像仓库 IP	字符串	目标镜像仓库 IP	是	127.0.0.1:5000
+#dst_registry_username	目标镜像仓库-管理员用户名	字符串	目标镜像仓库-管理员用户名	否	
+#dst_registry_password	目标镜像仓库-管理员密码	字符串	目标镜像仓库-管理员密码	否	
+#src_registry	源镜像仓库 IP	字符串	源镜像仓库 IP	是	127.0.0.1:5000
+#src_registry_username	源镜像仓库-管理员用户名	字符串	源镜像仓库-管理员用户名	否	
+#src_registry_password	源镜像仓库-管理员密码	字符串	源镜像仓库-管理员密码	否	
+#src_registry_token	源镜像仓库凭证	字符串	源镜像仓库凭证 (Bearer Token Authentication)	是	
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-registry-sync-tool
+  labels:
+    app: {{ APP_NAME }}-registry-sync-tool
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-registry-sync-tool
+      labels:
+        app: {{ APP_NAME }}-registry-sync-tool
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-registry-sync-tool
+        image: daocloud.io/daocloud/registry-sync-tool:v1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DST_REGISTRY
+          value: {{ dst_registry }}
+        - name: DST_REGISTRY_USERNAME
+          value: {{ dst_registry_username }}
+        - name: DST_REGISTRY_PASSWORD
+          value: {{ dst_registry_password }}
+        - name: SRC_REGISTRY
+          value: {{ src_registry }}
+        - name: SRC_REGISTRY_USERNAME
+          value: {{ src_registry_username }}
+        - name: SRC_REGISTRY_PASSWORD
+          value: {{ src_registry_password }}
+        - name: SRC_REGISTRY_TOKEN
+          value: {{ src_registry_token }}
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "2147483648"
+        volumeMounts:
+        - name: script
+          mountPath: /usr/bin/docker
+        - name: sock
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: script
+        hostPath:
+          path: /usr/bin/docker
+      - name: sock
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-registry-sync-tool
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-registry-sync-tool

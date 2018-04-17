@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-keycloak
+  labels:
+    app: {{ APP_NAME }}-keycloak
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-keycloak
+      labels:
+        app: {{ APP_NAME }}-keycloak
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-keycloak
+        image: daocloud.io/daocloud/keycloak:1.9.8.Final
+        ports:
+        - containerPort: 8080
+        env:
+          - name: KEYCLOAK_USER
+            value: {{KEYCLOAK_USER}}
+          - name: KEYCLOAK_PASSWORD
+            value: {{KEYCLOAK_PASSWORD}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-keycloak
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-keycloak

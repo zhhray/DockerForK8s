@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-opensuse
+  labels:
+    app: {{ APP_NAME }}-opensuse
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-opensuse
+      labels:
+        app: {{ APP_NAME }}-opensuse
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-opensuse
+        image: daocloud.io/opensuse:latest
+        command: ["sleep", "infinity"]

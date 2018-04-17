@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-rabbitmq
+  labels:
+    app: {{ APP_NAME }}-rabbitmq
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-rabbitmq
+      labels:
+        app: {{ APP_NAME }}-rabbitmq
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-rabbitmq
+        image: daocloud.io/rabbitmq:management
+        ports:
+          - containerPort: 15671
+          - containerPort: 15672
+        resources:
+          limits:
+            cpu: "0.8"
+            memory: "2147483648"
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-rabbitmq
+  labels:
+    app: {{ APP_NAME }}-rabbitmq
+spec:
+  type: NodePort
+  ports:
+  - port: 15671
+    name: rabbitmq-1
+  - port: 15672
+    name: rabbitmq-2
+  selector:
+    app: {{ APP_NAME }}-rabbitmq

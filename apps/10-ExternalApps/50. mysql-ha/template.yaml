@@ -1,0 +1,112 @@
+#mysql_root_user	Root UserName	字符串	The Root UserName of MySQL	是	admin
+#mysql_user_pass	Root Password	字符串	The Root Password of MySQL	是	dangerous
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  {{ APP_NAME }}-mysql
+  labels:
+    app:  {{ APP_NAME }}-mysql-ha
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app:  {{ APP_NAME }}-mysql-ha
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-mysql
+  labels:
+    app: {{ APP_NAME }}-mysql-ha
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ APP_NAME }}-mysql-ha
+        io.daocloud.dce.service.role: master
+        io.daocloud.dce.service.console: "true"
+    spec:
+      containers:
+      - image: daocloud.io/daocloud/mysql-ha
+        name: {{ APP_NAME }}-mysql
+        ports:
+        - containerPort: 3306
+        env:
+          - name: REPLICATION_MASTER
+            value: "true"
+          - name: MYSQL_PASS
+            value: {{ mysql_user_pass }}
+          - name: MYSQL_USER
+            value: {{ mysql_root_user }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: data
+        hostPath:
+          path: /var/lib/mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-mysql-slave
+  labels:
+    app: {{ APP_NAME }}-mysql-ha
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app:  {{ APP_NAME }}-mysql-ha
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-mysql-slave
+  labels:
+    app: {{ APP_NAME }}-mysql-ha
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ APP_NAME }}-mysql-ha
+        io.daocloud.dce.service.role: slave
+    spec:
+      containers:
+      - image: daocloud.io/daocloud/mysql-ha
+        name: {{ APP_NAME }}-mysql-slave
+        ports:
+        - containerPort: 3306
+        env:
+          - name: REPLICATION_SLAVE
+            value: "true"
+          - name: MYSQL_USER
+            value: {{ mysql_root_user }}
+          - name: MYSQL_PASS
+            value: {{ mysql_user_pass }}
+          - name: MYSQL_PORT_3306_TCP_ADDR
+            value: {{ APP_NAME }}-mysql
+          - name: MYSQL_PORT_3306_TCP_PORT
+            value: "3306"
+          - name: MYSQL_ENV_REPLICATION_USER
+            value: {{ mysql_root_user }}
+          - name: MYSQL_ENV_REPLICATION_PASS
+            value: {{ mysql_user_pass }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1073741824"
+      volumes:
+      - name: data
+        hostPath:
+          path: /var/lib/mysql

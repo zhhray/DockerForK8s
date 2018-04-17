@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-nginx
+  labels:
+    app: {{ APP_NAME }}-nginx
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-nginx
+      labels:
+        app: {{ APP_NAME }}-nginx
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-nginx
+        image: daocloud.io/nginx:latest
+        ports:
+        - containerPort: 80
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-nginx
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: {{ APP_NAME }}-nginx

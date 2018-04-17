@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-hadoop
+  labels:
+    app: {{ APP_NAME }}-hadoop
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-hadoop
+      labels:
+        app: {{ APP_NAME }}-hadoop
+    spec:
+      containers:
+      - name: {{ APP_NAME }}-hadoop
+        image: daocloud.io/daocloud/hadoop-docker:2.7.1
+        ports:
+          - containerPort: 8088
+            name: hadoop-0
+          - containerPort: 50070
+            name: hadoop-1
+        resources:
+          limits:
+            cpu: "0.9"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-hadoop
+  labels:
+    app: {{ APP_NAME }}-hadoop
+spec:
+  type: NodePort
+  ports:
+  - port: 8088
+    name: hadoop-0
+  - port: 50070
+    name: hadoop-1
+  selector:
+    app: {{ APP_NAME }}-hadoop

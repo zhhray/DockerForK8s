@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ APP_NAME }}-keycloak
+  labels:
+    app: {{ APP_NAME }}-keycloak
+spec:
+  template:
+    metadata:
+      name: {{ APP_NAME }}-keycloak
+      labels:
+        app: {{ APP_NAME }}-keycloak
+    spec:
+      initContainers:
+      - name: {{ APP_NAME }}-mysql
+        image: daocloud.io/mysql
+        env:
+        - name: MYSQL_DATABASE
+          value: keycloak
+        - name: MYSQL_USER
+          value: keycloak
+        - name: MYSQL_PASSWORD
+          value: {{MYSQL_PASSWORD}}
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{MYSQL_ROOT_PASSWORD}}
+        resources:
+          limits:
+            cpu: "0.9"
+            memory: "2147483648"
+      containers:
+      - name: {{ APP_NAME }}-keycloak
+        image: daocloud.io/daocloud/keycloak-mysql:1.9.8.Final
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KEYCLOAK_USER
+          value: {{KEYCLOAK_USER}}
+        - name: KEYCLOAK_PASSWORD
+          value: {{KEYCLOAK_PASSWORD}}
+        - name: MYSQL_DATABASE
+          value: keycloak
+        - name: MYSQL_USER
+          value: keycloak
+        - name: MYSQL_PASSWORD
+          value: {{MYSQL_PASSWORD}}
+        resources:
+          limits:
+            cpu: "0.9"
+            memory: "2147483648"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-keycloak
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+  selector:
+    app: {{ APP_NAME }}-keycloak
