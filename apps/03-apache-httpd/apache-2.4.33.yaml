@@ -1,0 +1,48 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: apache-httpd
+  labels:
+    name: apache-httpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: apache-httpd
+  template:
+    metadata:
+      labels:
+        name: apache-httpd
+    spec:
+      containers:
+      - name: apache-httpd
+        image: bitnami/apache:2.4.33
+        env:
+        - name: APACHE_HTTP_PORT_NUMBER
+          value: '80'
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+          - name: apache-httpd-data
+            mountPath: /bitnami/apache
+      volumes:
+      - name: apache-httpd-data
+        emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: apache-httpd-service
+  labels:
+    name: apache-httpd
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    targetPort: 80
+    port: 80
+    name: port
+  selector:
+    name: apache-httpd
+        
