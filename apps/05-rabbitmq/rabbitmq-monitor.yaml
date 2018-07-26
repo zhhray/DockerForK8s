@@ -1,0 +1,170 @@
+# 进入grafana进入Data source，+ Add data source
+# Name
+# type选prometheus
+# HTTP url配: https:<api_server>:8443/api/v1/proxy/namespaces/kube-system/services/prometheus-service:9090
+# skip tls verification
+# save & test
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rabbitmq
+---
+kind: Service
+apiVersion: v1
+metadata:
+#  namespace: rbmq
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+    type: LoadBalancer  
+spec:
+  type: NodePort
+  ports:
+   - name: http
+     protocol: TCP
+     port: 15672
+     targetPort: 15672
+   - name: amqp
+     protocol: TCP
+     port: 5672
+     targetPort: 5672
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+#  namespace: rbmq
+data:
+  enabled_plugins: |
+      [rabbitmq_management,rabbitmq_peer_discovery_k8s,accept,prometheus,prometheus_cowboy,prometheus_httpd,prometheus_rabbitmq_exporter].
+
+  rabbitmq.conf: |
+      ## Clustering
+      cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      cluster_formation.k8s.address_type = ip
+      cluster_formation.node_cleanup.interval = 10
+      # Set to false if automatic removal of unknown/absent nodes
+      # is desired. This can be dangerous, see
+      #  * http://www.rabbitmq.com/cluster-formation.html#node-health-checks-and-cleanup
+      #  * https://groups.google.com/forum/#!msg/rabbitmq-users/wuOfzEywHXo/k8z_HWIkBgAJ
+      cluster_formation.node_cleanup.only_log_warning = false
+      cluster_partition_handling = autoheal
+      ## queue master locator 
+      queue_master_locator=min-masters
+      ## See http://www.rabbitmq.com/access-control.html#loopback-users
+      loopback_users.guest = false
+   
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+#  namespace: rbmq
+spec:
+  serviceName: rabbitmq
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io/port: "15672"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      serviceAccountName: rabbitmq
+      terminationGracePeriodSeconds: 10
+      containers:        
+      - name: rabbitmq-k8s
+        image: index.miaoyun.io/miaoyun/rabbitmq:3.7
+        resources:
+          limits:
+            cpu: "2"
+          requests:
+            cpu: "0.2"
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/rabbitmq
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 15672
+          - name: amqp
+            protocol: TCP
+            containerPort: 5672
+        livenessProbe:
+          exec:
+            command: ["rabbitmqctl", "status"]
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["rabbitmqctl", "status"]
+          initialDelaySeconds: 20
+          periodSeconds: 60
+          timeoutSeconds: 10
+        imagePullPolicy: Always
+        env:
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: RABBITMQ_USE_LONGNAME
+            value: "true"
+          - name: RABBITMQ_NODENAME
+            value: "rabbit@$(MY_POD_IP)"
+          - name: K8S_SERVICE_NAME
+            value: "rabbitmq"
+          - name: RABBITMQ_ERLANG_COOKIE
+            value: "mycookie" 
+          - name: AUTOCLUSTER_CLEANUP
+            value: "true"
+          - name: CLEANUP_INTERVAL
+            value: "30"
+          - name: CLEANUP_WARN_ONLY
+            value: "false"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: rabbitmq-config
+            items:
+            - key: rabbitmq.conf
+              path: rabbitmq.conf
+            - key: enabled_plugins
+              path: enabled_plugins
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+  selector:
+    app: grafana
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - image: index.miaoyun.io/miaoyun/grafana:5.2.2
+        name: grafana
+        ports:
+        - containerPort: 3000

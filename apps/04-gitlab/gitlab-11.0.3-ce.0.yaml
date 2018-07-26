@@ -1,9 +1,9 @@
-kind: Deployment
 apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: gitlab-ce
   labels:
     name: gitlab-ce
+  name: gitlab-ce
 spec:
   replicas: 1
   selector:
@@ -15,39 +15,65 @@ spec:
         name: gitlab-ce
     spec:
       containers:
-      - name: gitlab-ce
-        image: gitlab/gitlab-ce:11.0.3-ce.0
+      - image: gitlab/gitlab-ce:11.0.3-ce.0
+        name: gitlab-ce
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: gitlab-configmap
+              key: omnibus-config
         ports:
         - containerPort: 80
           protocol: TCP
+        - containerPort: 22
+          protocol: TCP
         volumeMounts:
-          - name: gitlab-conf
-            mountPath: /etc/gitlab
-          - name: gitlab-log
-            mountPath: /var/log/gitlab
-          - name: gitlab-data
-            mountPath: /var/opt/gitlab
+        - mountPath: /etc/gitlab
+          name: gitlab-conf
+        - mountPath: /var/log/gitlab
+          name: gitlab-log
+        - mountPath: /var/opt/gitlab
+          name: gitlab-data
       volumes:
       - name: gitlab-conf
-        emptyDir: {}
+        hostPath:
+          path: /var/lib/gitlab/conf 
       - name: gitlab-log
-        emptyDir: {}
+        hostPath:
+          path: /var/lib/gitlab/log 
       - name: gitlab-data
-        emptyDir: {}
+        hostPath:
+          path: /var/lib/gitlab/data
+
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  name: gitlab-ce-service
   labels:
     name: gitlab-ce
+  name: gitlab-ce-service
 spec:
-  type: NodePort
   ports:
-  - protocol: TCP
-    targetPort: 80
+  - name: web
     port: 80
-    name: port80
+    protocol: TCP
+    targetPort: 80
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 22
+    nodePort: 30022
   selector:
     name: gitlab-ce
-        
+  type: NodePort
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: gitlab-configmap
+data:
+  omnibus-config: |
+    gitlab_rails['gitlab_ssh_host'] = '10.221.105.132'
+    gitlab_rails['gitlab_shell_ssh_port'] = '30022'
