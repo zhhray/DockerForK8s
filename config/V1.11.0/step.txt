@@ -1,0 +1,107 @@
+# https://www.cnblogs.com/RainingNight/p/using-kubeadm-to-create-a-cluster.html#%E5%AE%89%E8%A3%85-kubeadm-kubelet-and-kubectl
+# https://hub.qiniu.com/store	七牛云镜像仓库
+1. 	ubuntu16.04 
+	docker18.03 
+	/etc/docker/daemon.json
+	hostname
+	set ip
+	ufw disable
+2. apt-get update && apt-get install -y apt-transport-https curl
+3. curl -s http://packages.faasx.com/google/apt/doc/apt-key.gpg | sudo apt-key add -
+4. sudo cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb http://mirrors.ustc.edu.cn/kubernetes/apt/ kubernetes-xenial main
+EOF
+5. sudo apt-get update &&  apt-get install -y kubelet kubeadm kubectl
+6. 执行image.sh
+	docker tag k8s.gcr.io/pause-amd64:3.1 k8s.gcr.io/pause:3.1
+	docker pull reg.qiniu.com/dust/coredns:1.1.3
+	docker tag reg.qiniu.com/dust/coredns:1.1.3 k8s.gcr.io/coredns:1.1.3
+	
+7. 放开只读端口10255
+	vi /var/lib/kubelet/kubeadm-flags.env
+	--read-only-port=10255	
+8. kubeadm init --kubernetes-version=v1.11.0 --feature-gates=CoreDNS=true --pod-network-cidr=10.32.0.0/16 --token skg287.ahofg7l8lss8p6tf
+
+[init] using Kubernetes version: v1.11.0
+[preflight] running pre-flight checks
+I0731 08:42:45.172987   17205 kernel_validator.go:81] Validating kernel version
+I0731 08:42:45.173216   17205 kernel_validator.go:96] Validating kernel config
+	[WARNING SystemVerification]: docker version is greater than the most recently validated version. Docker version: 18.03.1-ce. Max validated version: 1
+[preflight/images] Pulling images required for setting up a Kubernetes cluster
+[preflight/images] This might take a minute or two, depending on the speed of your internet connection
+[preflight/images] You can also perform this action in beforehand using 'kubeadm config images pull'
+[kubelet] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[preflight] Activating the kubelet service
+[certificates] Generated ca certificate and key.
+[certificates] Generated apiserver certificate and key.
+[certificates] apiserver serving cert is signed for DNS names [k8s.master.240 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.clus0.221.105.240]
+[certificates] Generated apiserver-kubelet-client certificate and key.
+[certificates] Generated sa key and public key.
+[certificates] Generated front-proxy-ca certificate and key.
+[certificates] Generated front-proxy-client certificate and key.
+[certificates] Generated etcd/ca certificate and key.
+[certificates] Generated etcd/server certificate and key.
+[certificates] etcd/server serving cert is signed for DNS names [k8s.master.240 localhost] and IPs [127.0.0.1 ::1]
+[certificates] Generated etcd/peer certificate and key.
+[certificates] etcd/peer serving cert is signed for DNS names [k8s.master.240 localhost] and IPs [10.221.105.240 127.0.0.1 ::1]
+[certificates] Generated etcd/healthcheck-client certificate and key.
+[certificates] Generated apiserver-etcd-client certificate and key.
+[certificates] valid certificates and keys now exist in "/etc/kubernetes/pki"
+[kubeconfig] Wrote KubeConfig file to disk: "/etc/kubernetes/admin.conf"
+[kubeconfig] Wrote KubeConfig file to disk: "/etc/kubernetes/kubelet.conf"
+[kubeconfig] Wrote KubeConfig file to disk: "/etc/kubernetes/controller-manager.conf"
+[kubeconfig] Wrote KubeConfig file to disk: "/etc/kubernetes/scheduler.conf"
+[controlplane] wrote Static Pod manifest for component kube-apiserver to "/etc/kubernetes/manifests/kube-apiserver.yaml"
+[controlplane] wrote Static Pod manifest for component kube-controller-manager to "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+[controlplane] wrote Static Pod manifest for component kube-scheduler to "/etc/kubernetes/manifests/kube-scheduler.yaml"
+[etcd] Wrote Static Pod manifest for a local etcd instance to "/etc/kubernetes/manifests/etcd.yaml"
+[init] waiting for the kubelet to boot up the control plane as Static Pods from directory "/etc/kubernetes/manifests" 
+[init] this might take a minute or longer if the control plane images have to be pulled
+[apiclient] All control plane components are healthy after 39.003454 seconds
+[uploadconfig] storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config-1.11" in namespace kube-system with the configuration for the kubelets in the cluster
+[markmaster] Marking the node k8s.master.240 as master by adding the label "node-role.kubernetes.io/master=''"
+[markmaster] Marking the node k8s.master.240 as master by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+[patchnode] Uploading the CRI Socket information "/var/run/dockershim.sock" to the Node API object "k8s.master.240" as an annotation
+[bootstraptoken] using token: skg287.ahofg7l8lss8p6tf
+[bootstraptoken] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstraptoken] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstraptoken] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstraptoken] creating the "cluster-info" ConfigMap in the "kube-public" namespace
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes master has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of machines by running the following on each node
+as root:
+
+  kubeadm join 10.221.105.240:6443 --token skg287.ahofg7l8lss8p6tf --discovery-token-ca-cert-hash sha256:3182d83932dee237d29cfa9d95caf3c502255e7fe640abcd810
+
+
+9. kubectl apply -f http://mirror.faasx.com/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml
+10. Node : 
+	1 -- 6 步
+	kubeadm join 10.221.105.240:6443 --token skg287.ahofg7l8lss8p6tf --discovery-token-ca-cert-hash sha256:3182d83932dee237d29cfa9d95caf3c502255e7fe640abcd810243bc0903b9e6
+11. Dashboard
+	kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+	docker pull reg.qiniu.com/k8s/kubernetes-dashboard-amd64:v1.8.3
+	docker tag reg.qiniu.com/k8s/kubernetes-dashboard-amd64:v1.8.3 k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.3
+	docker rmi reg.qiniu.com/k8s/kubernetes-dashboard-amd64:v1.8.3
+	
+	kubectl edit svc kubernetes-dashboard -n kube-system
+	type: ClusterIP  --> NodePort
+12. 让master也运行pod（默认master不运行pod）
+	kubectl taint nodes --all node-role.kubernetes.io/master-
+	cd ./heapster && kubectl apply -f ./
