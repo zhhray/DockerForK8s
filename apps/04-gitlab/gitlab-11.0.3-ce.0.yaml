@@ -75,5 +75,6 @@ metadata:
   name: gitlab-configmap
 data:
   omnibus-config: |
-    gitlab_rails['gitlab_ssh_host'] = '10.221.105.132'
+    external_url 'http://10.221.105.161/'
+    gitlab_rails['gitlab_ssh_host'] = '10.221.105.161'
     gitlab_rails['gitlab_shell_ssh_port'] = '30022'
