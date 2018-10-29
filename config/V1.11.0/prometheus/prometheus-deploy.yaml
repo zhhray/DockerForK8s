@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus 
+  labels:
+    app: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus    
+    spec:
+      #serviceAccountName: prometheus      
+      containers:
+      - image: prom/prometheus:v2.4.3        
+        name: prometheus        
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention=24h"
+        - "--web.enable-admin-api"  # 控制对admin HTTP API的访问，其中包括删除时间序列等功能
+        - "--web.enable-lifecycle"  # 支持热更新，直接执行localhost:9090/-/reload立即生效
+        ports:
+        - containerPort: 9090
+          protocol: TCP          
+          name: http        
+        volumeMounts:
+        - mountPath: "/prometheus"
+          subPath: prometheus          
+          name: data        
+        - mountPath: "/etc/prometheus"
+          name: config-volume              
+      securityContext:
+        runAsUser: 0
+      volumes:
+      - name: data        
+        hostPath:
+          path: /var/lib/prometheus
+          type: DirectoryOrCreate
+      - configMap:
+          name: prometheus-config        
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus  
+  type: NodePort  
+  ports:
+  - name: web      
+    port: 9090
+    targetPort: http
