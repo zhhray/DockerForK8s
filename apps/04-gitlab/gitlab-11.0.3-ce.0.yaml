@@ -24,7 +24,7 @@ spec:
               name: gitlab-configmap
               key: omnibus-config
         ports:
-        - containerPort: 80
+        - containerPort: 30818
           protocol: TCP
         - containerPort: 22
           protocol: TCP
@@ -56,9 +56,10 @@ metadata:
 spec:
   ports:
   - name: web
-    port: 80
+    port: 30818
     protocol: TCP
-    targetPort: 80
+    targetPort: 30818
+    nodePort: 30818
   - name: ssh
     port: 22
     protocol: TCP
@@ -75,6 +76,6 @@ metadata:
   name: gitlab-configmap
 data:
   omnibus-config: |
-    external_url 'http://10.221.105.161/'
+    external_url 'http://10.221.105.161:30818/'
     gitlab_rails['gitlab_ssh_host'] = '10.221.105.161'
     gitlab_rails['gitlab_shell_ssh_port'] = '30022'
