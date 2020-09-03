@@ -1,0 +1,207 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  annotations:
+    miaoyun.io/os: linux
+  labels:
+    app: {{ .__APP__ }}-sts
+    miaoyun.io/application.name: {{ .__APP__ }}
+    miaoyun.io/application.workload: {{ .__APP__ }}-sts
+  name: {{ .__APP__ }}-sts
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .__APP__ }}-sts
+        miaoyun.io/application.name: {{ .__APP__ }}
+        miaoyun.io/application.workload: {{ .__APP__ }}-sts
+    spec:
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - args:
+            - "/etc/redis/redis.conf"
+            - "--protected-mode"
+            - "no"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          ports:
+            - protocol: TCP
+              containerPort: 6379
+            - protocol: TCP
+              containerPort: 16379
+          volumeMounts:
+            - name: volume-qgd0tk
+              subPath: redis.conf
+              mountPath: /etc/redis/redis.conf
+            - name: datadir
+              mountPath: /var/lib/redis
+            - mountPath: /etc/localtime
+              name: chiwen-sync-timezone
+              readOnly: true
+          name: container-796935
+          image: redis:6.0.4
+          command:
+            - redis-server
+      volumes:
+        - name: volume-qgd0tk
+          configMap:
+            name: {{ .__APP__ }}-cm-0
+            items:
+              - key: redis.conf
+                path: redis.conf
+            defaultMode: null
+        - hostPath:
+            path: /etc/localtime
+          name: chiwen-sync-timezone
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi   
+  selector:
+    matchLabels:
+      app: {{ .__APP__ }}-sts
+      miaoyun.io/application.name: {{ .__APP__ }}
+      miaoyun.io/application.workload: {{ .__APP__ }}-sts
+  replicas: 6
+  serviceName: {{ .__APP__ }}-headless
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  annotations: {}
+  labels:
+    miaoyun.io/application.name: {{ .__APP__ }}
+    app: {{ .__APP__ }}-sts
+  name: {{ .__APP__ }}-headless
+spec:
+  type: ClusterIP
+  selector:
+    miaoyun.io/application.name: {{ .__APP__ }}
+    app: {{ .__APP__ }}-sts
+  ports:
+    - port: 6379
+      protocol: TCP
+      targetPort: 6379
+      nodePort: null
+      name: tcp-6379
+    - port: 16379
+      protocol: TCP
+      targetPort: 16379
+      nodePort: null
+      name: tcp-16379
+  clusterIP: None
+
+---
+apiVersion: v1
+metadata:
+  name: {{ .__APP__ }}-cm-0
+  labels:
+    miaoyun.io/application.name: {{ .__APP__ }}
+kind: ConfigMap
+data:
+  redis.conf: |
+    #服务端口
+    port 6379
+
+    dir /var/lib/redis
+    #是否开启集群模式
+    cluster-enabled yes
+    #集群中node之间连接超时世界
+    cluster-node-timeout 15000
+    #加入集群后的node节点信息保存文件
+    cluster-config-file nodes.conf
+    #rdb持久化位置
+    dbfilename dump-cluster.rdb
+
+    appendonly yes
+    #aof持久化位置
+    appendfilename appendonly-cluster.aof
+
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: {{ .__APP__ }}-create-cluster
+spec:
+  volumes:
+    - name: volume-z624pe
+      configMap:
+        name: {{ .__APP__ }}-create-cluster-cm
+        items:
+          - key: create_cluster.sh
+            path: create_cluster.sh
+        defaultMode: 493
+    - name: chiwen-sync-timezone
+      hostPath:
+        path: /etc/localtime
+        type: ""
+  containers:
+    - name: container-796935
+      image: {{ .CHIWEN_SHELL_IMAGE }}
+      command:
+        - sh
+        - -cx
+        - /cluster_create.sh
+      env:
+        - name: REDIS_CLUSTER_NAME
+          value: {{ .__APP__ }}-sts
+        - name: NAMESPACE
+          value: {{ .__NAMESPACE__ }}
+      volumeMounts:
+        - name: volume-z624pe
+          mountPath: /cluster_create.sh
+          subPath: create_cluster.sh
+        - name: chiwen-sync-timezone
+          readOnly: true
+          mountPath: /etc/localtime
+      imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: chiwen-registry
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .__APP__ }}-create-cluster-cm
+data:
+  create_cluster.sh: >-
+    #!/bin/bash
+
+    REDIS_CLUSTER_NAME=${REDIS_CLUSTER_NAME:-redis-cluster-sts}
+
+    NAMESPACE=${NAMESPACE:-cloudpc}
+
+    while true; do
+      readyCount=`kubectl get sts ${REDIS_CLUSTER_NAME} -n ${NAMESPACE} -o jsonpath='{.status.readyReplicas}'`
+
+      if [ $readyCount -eq "6" ]; then
+        ret=`kubectl exec ${REDIS_CLUSTER_NAME}-0 -n ${NAMESPACE} -- redis-cli cluster info | grep cluster_state | awk -F':' '{print $2}'`
+
+        ret=`echo $ret | tr -d '\n\r'`
+        if [ "$ret" != "ok" ]; then
+          /usr/bin/expect << EOF
+          set timeout 10
+          spawn kubectl exec -i ${REDIS_CLUSTER_NAME}-0 -n ${NAMESPACE} -- redis-cli --cluster create --cluster-replicas 1 $(kubectl get pods -n ${NAMESPACE} -l app=${REDIS_CLUSTER_NAME} -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+
+          expect "type 'yes' to accept"                                   
+          send "yes\r"
+          expect eof
+EOF
+        fi
+
+        break
+      fi
+
+      sleep 5
+    done
+
+    exit 0
